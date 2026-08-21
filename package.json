@@ -1,0 +1,15 @@
+{
+  "name": "biz-tracker-pro",
+  "version": "1.0.0",
+  "description": "顾客/OPP/ABO 追踪系统(Pro 版本,带账号与下线管理)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
