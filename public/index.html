@@ -3361,7 +3361,7 @@ function hasProductKeyword(purchases, regex) {
   if (!Array.isArray(purchases)) return false;
   return purchases.some(p => p.product && regex.test(p.product));
 }
-const NUTRITION_KEYWORD_REGEX = /营养/;
+const NUTRITION_KEYWORD_REGEX = /营养|nutrilite/i;
 const ARTISTRY_KEYWORD_REGEX = /artistry/i;
 
 const contentEl = document.getElementById("content");
