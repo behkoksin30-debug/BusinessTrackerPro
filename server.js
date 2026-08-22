@@ -230,7 +230,7 @@ function sanitizeFollowUps(followUps) {
     .filter((f) => f.date || f.note);
 }
 
-const VALID_CATEGORIES = ["new", "regular", "vip", "vvip", "espring"];
+const VALID_CATEGORIES = ["new", "regular", "vip", "vvip"];
 function sanitizeCategory(category) {
   return VALID_CATEGORIES.includes(category) ? category : "new";
 }
