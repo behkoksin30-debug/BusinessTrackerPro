@@ -230,7 +230,7 @@ function sanitizeFollowUps(followUps) {
     .filter((f) => f.date || f.note);
 }
 
-const VALID_CATEGORIES = ["new", "regular", "vip", "vvip"];
+const VALID_CATEGORIES = ["new", "regular", "vip", "vvip", "espring"];
 function sanitizeCategory(category) {
   return VALID_CATEGORIES.includes(category) ? category : "new";
 }
@@ -792,4 +792,3 @@ app.put("/api/dashboard", authMiddleware, (req, res) => {
 app.listen(PORT, () => {
   console.log(`服务器已启动,监听端口 ${PORT}`);
 });
-
