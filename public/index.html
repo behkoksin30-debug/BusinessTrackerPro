@@ -421,6 +421,10 @@
     font-size: 12px;
     flex-shrink: 0;
   }
+  .espring-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
   .category-badge {
     font-size: 10px;
     font-weight: 700;
@@ -434,6 +438,7 @@
   .category-badge.regular { background: color-mix(in srgb, var(--muted) 16%, var(--card)); color: var(--muted); }
   .category-badge.vip { background: color-mix(in srgb, #C08A2E 22%, var(--card)); color: #C08A2E; font-weight: 700; }
   .category-badge.vvip { background: color-mix(in srgb, #9B2C5A 28%, var(--card)); color: #9B2C5A; font-weight: 800; }
+  .category-badge.espring { background: color-mix(in srgb, #2B7FB8 20%, var(--card)); color: #2B7FB8; font-weight: 700; }
   .category-badge.new_start { background: color-mix(in srgb, #5B5FC7 18%, var(--card)); color: #5B5FC7; }
   .category-badge.builder { background: color-mix(in srgb, #2F8F84 18%, var(--card)); color: #2F8F84; font-weight: 700; }
   .category-badge.leader { background: color-mix(in srgb, #C08A2E 24%, var(--card)); color: #C08A2E; font-weight: 800; }
@@ -1680,6 +1685,7 @@
             <option value="regular" id="categoryRegularOpt">一般</option>
             <option value="vip" id="categoryVipOpt">VIP</option>
             <option value="vvip" id="categoryVvipOpt">VVIP</option>
+            <option value="espring" id="categoryEspringOpt">Espring 用户</option>
           </select>
         </div>
         <div>
@@ -2630,6 +2636,7 @@ const I18N = {
     categoryRegular: "一般",
     categoryVip: "VIP",
     categoryVvip: "VVIP",
+    categoryEspring: "💧 Espring",
     purchasesFieldLabel: "订单",
     purchaseDateLabel: "购买日期",
     purchaseProductLabel: "购买产品",
@@ -2907,6 +2914,7 @@ const I18N = {
     categoryRegular: "Regular",
     categoryVip: "VIP",
     categoryVvip: "VVIP",
+    categoryEspring: "💧 Espring",
     purchasesFieldLabel: "Orders",
     purchaseDateLabel: "Purchase date",
     purchaseProductLabel: "Product",
@@ -2977,6 +2985,7 @@ function t() { return I18N[prefs.lang]; }
 
 function categoryLabel(cat) {
   const s = t();
+  if (cat === "espring") return s.categoryEspring;
   if (cat === "vvip") return s.categoryVvip;
   if (cat === "vip") return s.categoryVip;
   if (cat === "regular") return s.categoryRegular;
@@ -3044,6 +3053,7 @@ function applyLanguage() {
   document.getElementById("categoryRegularOpt").textContent = s.categoryRegular;
   document.getElementById("categoryVipOpt").textContent = s.categoryVip;
   document.getElementById("categoryVvipOpt").textContent = s.categoryVvip;
+  document.getElementById("categoryEspringOpt").textContent = s.categoryEspring;
   document.getElementById("lastMeetingFieldLabel").textContent = s.lastMeetingFieldLabel;
   document.getElementById("sawDemoFieldLabel").textContent = s.sawDemoFieldLabel;
   document.getElementById("sawDemoUnsetOpt").textContent = s.sawDemoUnset;
@@ -3474,6 +3484,7 @@ function render() {
             <div class="cust-name-row">
               <p class="cust-name">${escapeHtml(c.name)}</p>
               <span class="category-badge ${category}">${categoryLabel(category)}</span>
+              ${category === "espring" ? `<span class="espring-icon" title="Espring">💧</span>` : ""}
               ${c.notes ? `<span class="notes-dot" title="${escapeAttr(c.notes)}">📝</span>` : ""}
             </div>
             <p class="cust-meta">${hasBirthday ? s.monthDay(mm, dd) + (c.phone ? " · " + escapeHtml(c.phone) : "") : (c.phone ? escapeHtml(c.phone) : s.noBirthdayHint)}</p>
