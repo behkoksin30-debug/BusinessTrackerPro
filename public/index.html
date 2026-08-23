@@ -32,15 +32,16 @@
     --warn: #C97A2B;
   }
   html[data-theme="dark"] {
-    --bg: #18181B;
+    --bg: #0D0A14;
     --text: #F4F4F5;
     --muted: #A1A1AA;
     --muted-light: #71717A;
-    --card: #202023;
-    --card-border: #2C2C30;
-    --input-bg: #1C1C1F;
-    --input-border: #2C2C30;
+    --card: #17131F;
+    --card-border: #2A2438;
+    --input-bg: #150F1E;
+    --input-border: #2A2438;
     --accent-text: #18181B;
+    --glow-purple: #7B5CFA;
   }
   * { box-sizing: border-box; }
   body {
@@ -50,6 +51,15 @@
     font-family: 'Manrope', sans-serif;
     min-height: 100vh;
     transition: background 0.2s, color 0.2s;
+  }
+  html[data-theme="dark"] body {
+    background-image:
+      radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--glow-purple) 16%, transparent), transparent 42%),
+      radial-gradient(circle at 90% 25%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 40%),
+      radial-gradient(circle, color-mix(in srgb, #FFFFFF 8%, transparent) 1px, transparent 1px);
+    background-size: auto, auto, 22px 22px;
+    background-attachment: fixed, fixed, fixed;
+    background-position: 0 0, 0 0, 0 0;
   }
   .font-display { font-family: 'Manrope', sans-serif; font-weight: 800; }
   .wrap {
@@ -85,6 +95,11 @@
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+  html[data-theme="dark"] .icon-badge {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--glow-purple) 35%, transparent),
+      0 0 18px 2px color-mix(in srgb, var(--glow-purple) 45%, transparent);
   }
   h1 {
     font-size: 30px;
@@ -232,6 +247,9 @@
     transition: filter 0.15s;
   }
   .add-btn:hover { filter: brightness(0.94); }
+  html[data-theme="dark"] .add-btn {
+    box-shadow: 0 0 20px 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
 
   .downline-switcher-wrap { margin-bottom: 12px; }
   .viewing-as-banner {
@@ -323,6 +341,9 @@
     transition: filter 0.15s;
   }
   .enter-app-btn:hover { filter: brightness(0.94); }
+  html[data-theme="dark"] .enter-app-btn {
+    box-shadow: 0 0 20px 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
 
   .back-to-home-btn {
     display: flex;
@@ -709,6 +730,9 @@
     color: var(--accent);
     line-height: 1.1;
   }
+  html[data-theme="dark"] .opp-stat-number {
+    text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
   .opp-stat-label {
     font-size: 11px;
     color: var(--muted);
@@ -987,6 +1011,9 @@
     background: var(--accent);
     color: var(--accent-text);
     border-color: var(--accent);
+  }
+  html[data-theme="dark"] .modal-actions button.primary-btn {
+    box-shadow: 0 0 16px 0 color-mix(in srgb, var(--accent) 40%, transparent);
   }
   .modal-actions button:hover { filter: brightness(0.96); }
   .delete-row-btn {
@@ -1338,6 +1365,7 @@
               <button class="swatch" data-color="#C74B7A" style="background:#C74B7A"></button>
               <button class="swatch" data-color="#C08A2E" style="background:#C08A2E"></button>
               <button class="swatch" data-color="#4C7A3D" style="background:#4C7A3D"></button>
+              <button class="swatch" data-color="#FF7A3D" style="background:#FF7A3D"></button>
               <div class="color-input-wrap" title="自定义颜色">
                 <input type="color" id="customColor" value="#C4635A" />
               </div>
