@@ -556,6 +556,12 @@ function buildCustomerFields(body) {
 
 // ---------- Dashboard 展示区(海报 + 标语 + 公告)----------
 
+function clampNumber(val, min, max, fallback) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
 function readDashboard(username) {
   try {
     const raw = fs.readFileSync(userFilePath(username, "dashboard.json"), "utf-8");
@@ -564,9 +570,12 @@ function readDashboard(username) {
       poster: parsed.poster || "",
       tagline: parsed.tagline || "",
       announcement: parsed.announcement || "",
+      posterX: clampNumber(parsed.posterX, 0, 1, 0.5),
+      posterY: clampNumber(parsed.posterY, 0, 1, 0.5),
+      posterScale: clampNumber(parsed.posterScale, 1, 3, 1),
     };
   } catch (e) {
-    return { poster: "", tagline: "", announcement: "" };
+    return { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1 };
   }
 }
 
@@ -576,6 +585,9 @@ function writeDashboard(username, data) {
     poster: (data.poster || "").toString(),
     tagline: (data.tagline || "").toString().trim(),
     announcement: (data.announcement || "").toString().trim(),
+    posterX: clampNumber(data.posterX, 0, 1, 0.5),
+    posterY: clampNumber(data.posterY, 0, 1, 0.5),
+    posterScale: clampNumber(data.posterScale, 1, 3, 1),
   };
   fs.writeFileSync(userFilePath(username, "dashboard.json"), JSON.stringify(safe, null, 2), "utf-8");
   return safe;
