@@ -335,7 +335,7 @@
   .dashboard-poster-wrap {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 1;
+    aspect-ratio: 2 / 1;
     border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
@@ -361,23 +361,42 @@
     top: 8px;
     right: 8px;
     display: flex;
+    align-items: center;
     gap: 6px;
   }
-  .dashboard-poster-actions button {
-    padding: 6px 10px;
-    border-radius: 8px;
+  .poster-icon-btn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
     border: none;
     background: rgba(0,0,0,0.55);
     color: #fff;
-    font-size: 11px;
     cursor: pointer;
     font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
-  .dashboard-poster-actions button:hover { background: rgba(0,0,0,0.75); }
+  .poster-icon-btn:hover { background: rgba(0,0,0,0.75); }
+  .poster-actions-menu {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+  }
+  .poster-actions-menu.open {
+    max-width: 120px;
+    opacity: 1;
+  }
   .poster-edit-frame {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 1;
+    aspect-ratio: 2 / 1;
     border-radius: 12px;
     overflow: hidden;
     background: #000;
@@ -1602,9 +1621,20 @@
           <span id="dashboardPosterPlaceholderText">点击上传海报</span>
         </div>
         <div class="dashboard-poster-actions" id="dashboardPosterActions" style="display:none;">
-          <button type="button" onclick="event.stopPropagation(); openPosterEditModal()"><span id="dashboardPosterAdjustLabel">调整位置</span></button>
-          <button type="button" onclick="event.stopPropagation(); triggerPosterUpload()"><span id="dashboardPosterChangeLabel">更换</span></button>
-          <button type="button" onclick="event.stopPropagation(); removeDashboardPoster()"><span id="dashboardPosterRemoveLabel">删除</span></button>
+          <div class="poster-actions-menu" id="posterActionsMenu">
+            <button type="button" class="poster-icon-btn" id="dashboardPosterAdjustBtn" onclick="event.stopPropagation(); openPosterEditModal()" aria-label="调整位置" title="调整位置">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l3 3 3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>
+            </button>
+            <button type="button" class="poster-icon-btn" id="dashboardPosterChangeBtn" onclick="event.stopPropagation(); triggerPosterUpload()" aria-label="更换" title="更换">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            </button>
+            <button type="button" class="poster-icon-btn" id="dashboardPosterRemoveBtn" onclick="event.stopPropagation(); removeDashboardPoster()" aria-label="删除" title="删除">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+          </div>
+          <button type="button" class="poster-icon-btn poster-actions-toggle" onclick="event.stopPropagation(); togglePosterActionsMenu()" aria-label="更多操作" title="更多操作">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          </button>
         </div>
       </div>
       <input type="file" accept="image/*" id="dashboardPosterInput" style="display:none;" />
@@ -6521,9 +6551,15 @@ function renderDashboard() {
     posterWrap.classList.remove("has-poster");
   }
   document.getElementById("dashboardPosterPlaceholderText").textContent = s.dashboardPosterPlaceholder;
-  document.getElementById("dashboardPosterAdjustLabel").textContent = s.dashboardPosterAdjustLabel;
-  document.getElementById("dashboardPosterChangeLabel").textContent = s.dashboardPosterChangeLabel;
-  document.getElementById("dashboardPosterRemoveLabel").textContent = s.dashboardPosterRemoveLabel;
+  const adjustBtn = document.getElementById("dashboardPosterAdjustBtn");
+  adjustBtn.title = s.dashboardPosterAdjustLabel;
+  adjustBtn.setAttribute("aria-label", s.dashboardPosterAdjustLabel);
+  const changeBtn = document.getElementById("dashboardPosterChangeBtn");
+  changeBtn.title = s.dashboardPosterChangeLabel;
+  changeBtn.setAttribute("aria-label", s.dashboardPosterChangeLabel);
+  const removeBtn = document.getElementById("dashboardPosterRemoveBtn");
+  removeBtn.title = s.dashboardPosterRemoveLabel;
+  removeBtn.setAttribute("aria-label", s.dashboardPosterRemoveLabel);
 
   const taglineEl = document.getElementById("dashboardTaglineText");
   taglineEl.textContent = dashboardData.tagline || "";
@@ -6539,6 +6575,18 @@ window.addEventListener("resize", () => {
   const posterWrap = document.getElementById("dashboardPosterWrap");
   if (dashboardData.poster && img && img.naturalWidth) {
     applyPosterTransform(img, posterWrap, dashboardData.posterX, dashboardData.posterY, dashboardData.posterScale);
+  }
+});
+
+function togglePosterActionsMenu() {
+  document.getElementById("posterActionsMenu").classList.toggle("open");
+}
+
+document.addEventListener("click", (e) => {
+  const actions = document.getElementById("dashboardPosterActions");
+  const menu = document.getElementById("posterActionsMenu");
+  if (menu && menu.classList.contains("open") && actions && !actions.contains(e.target)) {
+    menu.classList.remove("open");
   }
 });
 
