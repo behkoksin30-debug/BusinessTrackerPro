@@ -828,13 +828,49 @@
   .opp-stat-chip-editable {
     position: relative;
     cursor: pointer;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
   }
   .opp-stat-chip-editable:hover { border-color: var(--accent); }
+  .opp-stat-chip-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .opp-stat-indicator {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .opp-stat-edit-icon {
-    position: absolute;
-    top: 12px;
-    right: 12px;
     color: var(--muted-light);
+  }
+  .stat-ring-wrap {
+    position: relative;
+    width: 28px;
+    height: 28px;
+  }
+  .stat-ring-wrap svg circle:last-child {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  html[data-theme="dark"] .stat-ring-wrap svg circle:last-child {
+    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 65%, transparent));
+  }
+  .stat-ring-percent {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--accent);
   }
 
   .checklist-group {
@@ -1611,23 +1647,29 @@
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('count')">
-          <span class="opp-stat-number" id="customerStatsCountNum">0</span>
-          <select class="opp-stat-category-select" id="customerCountCategorySelect" onclick="event.stopPropagation()">
-            <option value="" id="customerCountCatAllOpt">顾客总数量</option>
-            <option value="vip" id="customerCountCatVipOpt">VIP总数</option>
-            <option value="vvip" id="customerCountCatVvipOpt">VVIP总数</option>
-          </select>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="customerStatsCountNum">0</span>
+            <select class="opp-stat-category-select" id="customerCountCategorySelect" onclick="event.stopPropagation()">
+              <option value="" id="customerCountCatAllOpt">顾客总数量</option>
+              <option value="vip" id="customerCountCatVipOpt">VIP总数</option>
+              <option value="vvip" id="customerCountCatVvipOpt">VVIP总数</option>
+            </select>
+          </div>
+          <div class="opp-stat-indicator" id="customerStatsCountIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('month')">
-          <span class="opp-stat-number" id="customerStatsMonthNum">0</span>
-          <span class="opp-stat-label" id="customerStatsMonthLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="customerStatsMonthNum">0</span>
+            <span class="opp-stat-label" id="customerStatsMonthLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="customerStatsMonthIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('total')">
-          <span class="opp-stat-number" id="customerStatsTotalNum">0</span>
-          <span class="opp-stat-label" id="customerStatsTotalLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="customerStatsTotalNum">0</span>
+            <span class="opp-stat-label" id="customerStatsTotalLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="customerStatsTotalIndicator"></div>
         </div>
       </div>
       <div id="content">
@@ -1648,14 +1690,18 @@
       </div>
       <div class="opp-stats-bar" id="oppStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editOppGoal('month')">
-          <span class="opp-stat-number" id="oppStatsThisMonthNum">0</span>
-          <span class="opp-stat-label" id="oppStatsThisMonthLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="oppStatsThisMonthNum">0</span>
+            <span class="opp-stat-label" id="oppStatsThisMonthLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="oppStatsThisMonthIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" id="oppStatsTotalChip" onclick="editOppGoal('total')">
-          <span class="opp-stat-number" id="oppStatsTotalNum">0</span>
-          <span class="opp-stat-label" id="oppStatsTotalLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="oppStatsTotalNum">0</span>
+            <span class="opp-stat-label" id="oppStatsTotalLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="oppStatsTotalIndicator"></div>
         </div>
       </div>
       <div id="prospectsContent">
@@ -1678,9 +1724,11 @@
           <span class="opp-stat-label" id="birthdaysStatsMonthLabel"></span>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editBirthdaysGoal()">
-          <span class="opp-stat-number" id="birthdaysStatsTotalNum">0</span>
-          <span class="opp-stat-label" id="birthdaysStatsTotalLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="birthdaysStatsTotalNum">0</span>
+            <span class="opp-stat-label" id="birthdaysStatsTotalLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="birthdaysStatsTotalIndicator"></div>
         </div>
       </div>
       <div id="birthdaysContent">
@@ -1705,9 +1753,11 @@
           <span class="opp-stat-label" id="abosStatsMonthLabel"></span>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editAbosGoal()">
-          <span class="opp-stat-number" id="abosStatsTotalNum">0</span>
-          <span class="opp-stat-label" id="abosStatsTotalLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="abosStatsTotalNum">0</span>
+            <span class="opp-stat-label" id="abosStatsTotalLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="abosStatsTotalIndicator"></div>
         </div>
       </div>
       <div id="abosContent">
@@ -1727,9 +1777,11 @@
       </div>
       <div class="opp-stats-bar" id="partnersStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editPartnersGoal()">
-          <span class="opp-stat-number" id="partnersStatsCountNum">0</span>
-          <span class="opp-stat-label" id="partnersStatsCountLabel"></span>
-          <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="partnersStatsCountNum">0</span>
+            <span class="opp-stat-label" id="partnersStatsCountLabel"></span>
+          </div>
+          <div class="opp-stat-indicator" id="partnersStatsCountIndicator"></div>
         </div>
       </div>
       <div id="partnersContent">
@@ -3729,6 +3781,16 @@ document.getElementById("saveCustomColorBtn").addEventListener("click", () => {
   closeCustomColorModal();
 });
 
+function renderStatIndicator(current, goal) {
+  if (goal > 0) {
+    const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
+    const circumference = 94.2;
+    const dash = (pct / 100) * circumference;
+    return `<div class="stat-ring-wrap"><svg width="28" height="28" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--input-border)" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${dash} ${circumference}" transform="rotate(-90 18 18)"/></svg><span class="stat-ring-percent">${pct}%</span></div>`;
+  }
+  return `<svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`;
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
@@ -3773,6 +3835,7 @@ function render() {
     document.getElementById("customerStatsCountNum").textContent = countGoal > 0
       ? `${countForCategory}/${countGoal}`
       : String(countForCategory);
+    document.getElementById("customerStatsCountIndicator").innerHTML = renderStatIndicator(countForCategory, countGoal);
     const categorySelect = document.getElementById("customerCountCategorySelect");
     if (document.activeElement !== categorySelect) {
       categorySelect.value = countCategory;
@@ -3780,10 +3843,12 @@ function render() {
     document.getElementById("customerStatsMonthNum").textContent = prefs.customerMonthGoal > 0
       ? `${fmt(thisMonthTotal)}/${prefs.customerMonthGoal}`
       : fmt(thisMonthTotal);
+    document.getElementById("customerStatsMonthIndicator").innerHTML = renderStatIndicator(thisMonthTotal, prefs.customerMonthGoal || 0);
     document.getElementById("customerStatsMonthLabel").textContent = s.customerStatsMonthLabel;
     document.getElementById("customerStatsTotalNum").textContent = prefs.customerTotalGoal > 0
       ? `${fmt(grandTotal)}/${prefs.customerTotalGoal}`
       : fmt(grandTotal);
+    document.getElementById("customerStatsTotalIndicator").innerHTML = renderStatIndicator(grandTotal, prefs.customerTotalGoal || 0);
     document.getElementById("customerStatsTotalLabel").textContent = s.customerStatsTotalLabel;
   } else {
     customerStatsBar.style.display = "none";
@@ -4100,10 +4165,12 @@ function renderProspects() {
     document.getElementById("oppStatsThisMonthNum").textContent = prefs.oppMonthGoal > 0
       ? `${thisMonthCount}/${prefs.oppMonthGoal}`
       : String(thisMonthCount);
+    document.getElementById("oppStatsThisMonthIndicator").innerHTML = renderStatIndicator(thisMonthCount, prefs.oppMonthGoal || 0);
     document.getElementById("oppStatsThisMonthLabel").textContent = s.oppStatsThisMonthLabel;
     document.getElementById("oppStatsTotalNum").textContent = prefs.oppGoal > 0
       ? `${withOppDate.length}/${prefs.oppGoal}`
       : String(withOppDate.length);
+    document.getElementById("oppStatsTotalIndicator").innerHTML = renderStatIndicator(withOppDate.length, prefs.oppGoal || 0);
     document.getElementById("oppStatsTotalLabel").textContent = s.oppStatsTotalLabel;
   } else {
     oppStatsBar.style.display = "none";
@@ -4588,6 +4655,7 @@ function renderBirthdays() {
     document.getElementById("birthdaysStatsTotalNum").textContent = prefs.birthdaysGoal > 0
       ? `${birthdays.length}/${prefs.birthdaysGoal}`
       : String(birthdays.length);
+    document.getElementById("birthdaysStatsTotalIndicator").innerHTML = renderStatIndicator(birthdays.length, prefs.birthdaysGoal || 0);
     document.getElementById("birthdaysStatsTotalLabel").textContent = s.birthdaysStatsTotalLabel;
   } else {
     birthdaysStatsBar.style.display = "none";
@@ -4942,6 +5010,7 @@ function renderAbos() {
     document.getElementById("abosStatsTotalNum").textContent = prefs.abosGoal > 0
       ? `${abos.length}/${prefs.abosGoal}`
       : String(abos.length);
+    document.getElementById("abosStatsTotalIndicator").innerHTML = renderStatIndicator(abos.length, prefs.abosGoal || 0);
     document.getElementById("abosStatsTotalLabel").textContent = s.abosStatsTotalLabel;
   } else {
     abosStatsBar.style.display = "none";
@@ -5352,6 +5421,7 @@ function renderPartners() {
     document.getElementById("partnersStatsCountNum").textContent = prefs.partnersGoal > 0
       ? `${partners.length}/${prefs.partnersGoal}`
       : String(partners.length);
+    document.getElementById("partnersStatsCountIndicator").innerHTML = renderStatIndicator(partners.length, prefs.partnersGoal || 0);
     document.getElementById("partnersStatsCountLabel").textContent = s.partnerStatsCountLabel;
   } else {
     partnersStatsBar.style.display = "none";
