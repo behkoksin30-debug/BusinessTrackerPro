@@ -1537,6 +1537,7 @@
           <option value="name" id="customerSortNameOpt">按姓名 A-Z</option>
           <option value="recent" id="customerSortRecentOpt">最近新增</option>
           <option value="updated" id="customerSortUpdatedOpt">最新更新</option>
+          <option value="espring_only" id="customerSortEspringOpt">Espring User</option>
         </select>
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
@@ -2482,6 +2483,7 @@ const I18N = {
     sortByStatus: "按反应状态",
     sortByProgress: "按进度最多",
     sortByUpdated: "最新更新",
+    sortByEspringOnly: "Espring User",
     loadFailed: "加载失败,请刷新重试",
     deleteFailed: "删除失败,请重试",
     errorName: "请输入顾客姓名",
@@ -2757,6 +2759,7 @@ const I18N = {
     sortByStatus: "By status",
     sortByProgress: "By most progress",
     sortByUpdated: "Recently updated",
+    sortByEspringOnly: "Espring User",
     loadFailed: "Failed to load. Please refresh.",
     deleteFailed: "Failed to delete. Please try again.",
     errorName: "Please enter a customer name",
@@ -3092,6 +3095,7 @@ function applyLanguage() {
   document.getElementById("customerSortNameOpt").textContent = s.sortByName;
   document.getElementById("customerSortRecentOpt").textContent = s.sortByRecent;
   document.getElementById("customerSortUpdatedOpt").textContent = s.sortByUpdated;
+  document.getElementById("customerSortEspringOpt").textContent = s.sortByEspringOnly;
   document.getElementById("prospectSearchInput").placeholder = s.searchPlaceholder;
   document.getElementById("prospectSortOppdateOpt").textContent = s.sortByOppDate;
   document.getElementById("prospectSortNameOpt").textContent = s.sortByName;
@@ -3488,9 +3492,12 @@ function render() {
 
   const searchTerm = document.getElementById("customerSearchInput").value.trim().toLowerCase();
   const sortBy = document.getElementById("customerSortSelect").value;
-  const filtered = customers.filter(c =>
+  let filtered = customers.filter(c =>
     !searchTerm || c.name.toLowerCase().includes(searchTerm) || (c.phone && c.phone.includes(searchTerm))
   );
+  if (sortBy === "espring_only") {
+    filtered = filtered.filter(c => hasProductKeyword(c.purchases, /espring/i));
+  }
 
   if (filtered.length === 0) {
     contentEl.innerHTML = `<div class="empty-state">${customers.length === 0 ? s.empty : s.noSearchResults}</div>`;
