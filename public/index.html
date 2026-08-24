@@ -2500,6 +2500,7 @@ const I18N = {
     dayOptionLabel: (d) => `${d}日`,
     noBirthdayHint: "未设置生日",
     monthDay: (m, d) => `${m}月${d}日`,
+    monthDayYear: (y, m, d) => `${y}年${m}月${d}日`,
     footerCount: (n) => `共 ${n} 位顾客 · 按生日临近顺序排列`,
     deleteLabel: "删除",
     editLabel: "编辑",
@@ -2778,6 +2779,10 @@ const I18N = {
     monthDay: (m, d) => {
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       return `${months[m-1]} ${d}`;
+    },
+    monthDayYear: (y, m, d) => {
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return `${months[m-1]} ${d}, ${y}`;
     },
     footerCount: (n) => `${n} customer${n === 1 ? "" : "s"} · sorted by upcoming birthday`,
     deleteLabel: "Delete",
@@ -4066,8 +4071,8 @@ function openProspectDetailModal(id) {
     const sortedFollowUps = [...followUps].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     followUpsListEl.innerHTML = sortedFollowUps.map(f => {
       const dateLabel = f.date ? (() => {
-        const [, m, d] = f.date.split("-").map(Number);
-        return s.monthDay(m, d);
+        const [y, m, d] = f.date.split("-").map(Number);
+        return s.monthDayYear(y, m, d);
       })() : "";
       return `
         <div class="history-item">
@@ -5448,8 +5453,8 @@ function openDetailModal(id) {
     const sortedPurchases = [...purchases].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     historyList.innerHTML = sortedPurchases.map(p => {
       const dateLabel = p.date ? (() => {
-        const [, m, d] = p.date.split("-").map(Number);
-        return s.monthDay(m, d);
+        const [y, m, d] = p.date.split("-").map(Number);
+        return s.monthDayYear(y, m, d);
       })() : "";
       return `
         <div class="history-item">
