@@ -181,23 +181,76 @@
       inset 2px 2px 4px rgba(255,255,255,0.3),
       0 0 16px 3px var(--sw-glow, transparent);
   }
-  .color-input-wrap {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    overflow: hidden;
+  .custom-color-trigger { cursor: pointer; border: none; }
+  .color-picker-square {
     position: relative;
-    border: 1px dashed var(--muted-light);
-    flex-shrink: 0;
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: crosshair;
+    touch-action: none;
   }
-  .color-input-wrap input[type="color"] {
+  .cps-white { position: absolute; inset: 0; background: linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+  .cps-black { position: absolute; inset: 0; background: linear-gradient(to top, #000, rgba(0,0,0,0)); }
+  .color-picker-cursor {
     position: absolute;
-    top: -4px; left: -4px;
-    width: 32px; height: 32px;
-    border: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.4);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .hue-slider {
+    position: relative;
+    height: 14px;
+    border-radius: 999px;
+    background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+    touch-action: none;
     cursor: pointer;
-    background: none;
-    padding: 0;
+    margin-top: 16px;
+  }
+  .hue-slider-handle {
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.4);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .color-preview-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow:
+      inset -2px -3px 5px rgba(0,0,0,0.35),
+      inset 2px 2px 4px rgba(255,255,255,0.45);
+  }
+  .rgb-inputs { display: flex; gap: 8px; flex: 1; }
+  .rgb-input-group { flex: 1; text-align: center; }
+  .rgb-input-group input {
+    width: 100%;
+    text-align: center;
+    padding: 8px 4px;
+  }
+  .rgb-input-group label {
+    font-size: 11px;
+    color: var(--muted-light);
+    margin-top: 4px;
+    display: block;
   }
   .toggle-row {
     display: flex;
@@ -1389,9 +1442,7 @@
               <button class="swatch" data-color="#8B00FF" style="background:#8B00FF; --sw-glow:#8B00FF;"></button>
               <button class="swatch" data-color="#00E676" style="background:#00E676; --sw-glow:#00E676;"></button>
               <button class="swatch" data-color="#FF6A00" style="background:#FF6A00; --sw-glow:#FF6A00;"></button>
-              <div class="color-input-wrap" title="自定义颜色">
-                <input type="color" id="customColor" value="#C4635A" />
-              </div>
+              <button type="button" class="swatch custom-color-trigger" id="customColorTrigger" title="自定义颜色" style="background: conic-gradient(from 180deg, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000);"></button>
             </div>
           </div>
           <div class="settings-section">
@@ -2258,6 +2309,49 @@
     </div>
   </div>
 
+  <!-- Custom color picker modal -->
+  <div class="modal-overlay" id="customColorOverlay">
+    <div class="modal-box">
+      <button class="modal-back-btn" onclick="closeCustomColorModal()" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      </button>
+      <p class="modal-title" id="customColorModalTitle">自定义颜色</p>
+
+      <div class="color-picker-square" id="colorPickerSquare">
+        <div class="cps-white"></div>
+        <div class="cps-black"></div>
+        <div class="color-picker-cursor" id="colorPickerCursor"></div>
+      </div>
+
+      <div class="hue-slider" id="hueSlider">
+        <div class="hue-slider-handle" id="hueSliderHandle"></div>
+      </div>
+
+      <div class="color-picker-row">
+        <div class="color-preview-circle" id="colorPreviewCircle"></div>
+        <div class="rgb-inputs">
+          <div class="rgb-input-group">
+            <input type="number" min="0" max="255" id="rgbRInput" />
+            <label>R</label>
+          </div>
+          <div class="rgb-input-group">
+            <input type="number" min="0" max="255" id="rgbGInput" />
+            <label>G</label>
+          </div>
+          <div class="rgb-input-group">
+            <input type="number" min="0" max="255" id="rgbBInput" />
+            <label>B</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelCustomColorBtn" type="button"><span id="cancelCustomColorLabel">取消</span></button>
+        <button class="primary-btn" id="saveCustomColorBtn" type="button"><span id="saveCustomColorLabel">确定</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Birthday wish modal -->
   <div class="modal-overlay" id="wishOverlay">
     <div class="modal-box">
@@ -2618,6 +2712,7 @@ const I18N = {
     dashboardTaglinePlaceholder: "点击这里写一句标语…",
     dashboardAnnouncementPlaceholder: "点击这里写公告内容…",
     dashboardTextModalTitle: "编辑展示文字",
+    customColorModalTitle: "自定义颜色",
     dashboardTaglineFieldLabel: "标语",
     dashboardAnnouncementFieldLabel: "公告内容",
     dashboardPosterTooLarge: "图片太大,请选择小一点的图片",
@@ -2901,6 +2996,7 @@ const I18N = {
     dashboardTaglinePlaceholder: "Click to write a tagline…",
     dashboardAnnouncementPlaceholder: "Click to write an announcement…",
     dashboardTextModalTitle: "Edit Display Text",
+    customColorModalTitle: "Custom Color",
     dashboardTaglineFieldLabel: "Tagline",
     dashboardAnnouncementFieldLabel: "Announcement",
     dashboardPosterTooLarge: "Image too large, please pick a smaller one",
@@ -3039,10 +3135,17 @@ function applyPrefs() {
   document.documentElement.setAttribute("data-theme", prefs.dark ? "dark" : "light");
   document.documentElement.style.setProperty("--accent", prefs.color);
   document.getElementById("darkToggle").classList.toggle("on", prefs.dark);
-  document.querySelectorAll(".swatch").forEach(sw => {
+  document.querySelectorAll(".swatch[data-color]").forEach(sw => {
     sw.classList.toggle("active", sw.dataset.color.toLowerCase() === prefs.color.toLowerCase());
   });
-  document.getElementById("customColor").value = prefs.color;
+  const customTrigger = document.getElementById("customColorTrigger");
+  if (customTrigger) {
+    const isPreset = PRESET_SWATCH_COLORS.some(c => c.toLowerCase() === prefs.color.toLowerCase());
+    customTrigger.classList.toggle("active", !isPreset);
+    customTrigger.style.background = isPreset
+      ? "conic-gradient(from 180deg, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)"
+      : prefs.color;
+  }
   document.querySelectorAll(".lang-btn").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.lang === prefs.lang);
   });
@@ -3255,6 +3358,9 @@ function applyLanguage() {
   document.getElementById("partnerDetailNotesTitle").textContent = s.notesFieldLabel;
   renderPartners();
   document.getElementById("dashboardTextModalTitle").textContent = s.dashboardTextModalTitle;
+  document.getElementById("customColorModalTitle").textContent = s.customColorModalTitle;
+  document.getElementById("cancelCustomColorLabel").textContent = s.cancelLabel;
+  document.getElementById("saveCustomColorLabel").textContent = s.saveLabel;
   document.getElementById("enterAppLabel").textContent = s.enterAppLabel;
   document.getElementById("downlineSwitcherLabel").textContent = s.downlineSwitcherLabel;
   document.getElementById("downlineManageLabel").textContent = s.downlineManageLabel;
@@ -3443,6 +3549,155 @@ const ARTISTRY_KEYWORD_REGEX = /artistry/i;
 
 const contentEl = document.getElementById("content");
 const footerEl = document.getElementById("footerCount");
+
+/* ============================================================
+   自定义颜色选择器(渐层方块 + 色相滑杆 + RGB 数字输入)
+   ============================================================ */
+const PRESET_SWATCH_COLORS = ["#C4635A","#2F8F84","#5B5FC7","#C74B7A","#C08A2E","#4C7A3D","#FF7A3D","#1E3FFF","#FFD500","#FF0022","#8B00FF","#00E676","#FF6A00"];
+
+function hsvToRgb(h, s, v) {
+  h = ((h % 360) + 360) % 360 / 360;
+  let r, g, b;
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const tt = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+    case 0: r = v; g = tt; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = tt; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = tt; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+  }
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0;
+  const v = max;
+  const d = max - min;
+  const s = max === 0 ? 0 : d / max;
+  if (max !== min) {
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return { h: h * 360, s, v };
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(x => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+function hexToRgb(hex) {
+  let clean = (hex || "").replace("#", "");
+  if (clean.length === 3) clean = clean.split("").map(c => c + c).join("");
+  const num = parseInt(clean, 16) || 0;
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+
+let pickerHue = 0, pickerSat = 1, pickerVal = 1;
+
+function updatePickerVisuals(skipRgbSync) {
+  const { r, g, b } = hsvToRgb(pickerHue, pickerSat, pickerVal);
+  document.getElementById("colorPickerSquare").style.background = `hsl(${pickerHue}, 100%, 50%)`;
+  document.getElementById("colorPickerCursor").style.left = (pickerSat * 100) + "%";
+  document.getElementById("colorPickerCursor").style.top = ((1 - pickerVal) * 100) + "%";
+  document.getElementById("hueSliderHandle").style.left = (pickerHue / 360 * 100) + "%";
+  document.getElementById("colorPreviewCircle").style.background = rgbToHex(r, g, b);
+  if (!skipRgbSync) {
+    document.getElementById("rgbRInput").value = r;
+    document.getElementById("rgbGInput").value = g;
+    document.getElementById("rgbBInput").value = b;
+  }
+}
+
+function attachPickerDrag(el, onMove) {
+  el.addEventListener("pointerdown", (e) => {
+    el.setPointerCapture(e.pointerId);
+    onMove(e);
+    const move = (ev) => onMove(ev);
+    const up = () => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+  });
+}
+
+function handleSquarePointer(e) {
+  const square = document.getElementById("colorPickerSquare");
+  const rect = square.getBoundingClientRect();
+  let x = (e.clientX - rect.left) / rect.width;
+  let y = (e.clientY - rect.top) / rect.height;
+  x = Math.max(0, Math.min(1, x));
+  y = Math.max(0, Math.min(1, y));
+  pickerSat = x;
+  pickerVal = 1 - y;
+  updatePickerVisuals();
+}
+
+function handleHuePointer(e) {
+  const slider = document.getElementById("hueSlider");
+  const rect = slider.getBoundingClientRect();
+  let x = (e.clientX - rect.left) / rect.width;
+  x = Math.max(0, Math.min(1, x));
+  pickerHue = x * 360;
+  updatePickerVisuals();
+}
+
+attachPickerDrag(document.getElementById("colorPickerSquare"), handleSquarePointer);
+attachPickerDrag(document.getElementById("hueSlider"), handleHuePointer);
+
+["rgbRInput", "rgbGInput", "rgbBInput"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const r = Math.max(0, Math.min(255, parseInt(document.getElementById("rgbRInput").value, 10) || 0));
+    const g = Math.max(0, Math.min(255, parseInt(document.getElementById("rgbGInput").value, 10) || 0));
+    const b = Math.max(0, Math.min(255, parseInt(document.getElementById("rgbBInput").value, 10) || 0));
+    const hsv = rgbToHsv(r, g, b);
+    pickerHue = hsv.h;
+    pickerSat = hsv.s;
+    pickerVal = hsv.v;
+    updatePickerVisuals(true);
+  });
+});
+
+function openCustomColorModal() {
+  const { r, g, b } = hexToRgb(prefs.color);
+  const hsv = rgbToHsv(r, g, b);
+  pickerHue = hsv.h;
+  pickerSat = hsv.s || 0;
+  pickerVal = hsv.v || 1;
+  updatePickerVisuals();
+  document.getElementById("customColorOverlay").classList.add("open");
+  ensureHistoryPushed();
+}
+
+function closeCustomColorModal() {
+  document.getElementById("customColorOverlay").classList.remove("open");
+  releaseHistoryIfAllClosed();
+}
+
+document.getElementById("customColorTrigger").addEventListener("click", openCustomColorModal);
+document.getElementById("cancelCustomColorBtn").addEventListener("click", closeCustomColorModal);
+document.getElementById("customColorOverlay").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("customColorOverlay")) closeCustomColorModal();
+});
+document.getElementById("saveCustomColorBtn").addEventListener("click", () => {
+  const { r, g, b } = hsvToRgb(pickerHue, pickerSat, pickerVal);
+  prefs.color = rgbToHex(r, g, b);
+  savePrefs();
+  applyPrefs();
+  closeCustomColorModal();
+});
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -5812,18 +6067,12 @@ document.addEventListener("click", (e) => {
   }
 });
 
-document.querySelectorAll(".swatch").forEach(sw => {
+document.querySelectorAll(".swatch[data-color]").forEach(sw => {
   sw.addEventListener("click", () => {
     prefs.color = sw.dataset.color;
     savePrefs();
     applyPrefs();
   });
-});
-
-document.getElementById("customColor").addEventListener("input", (e) => {
-  prefs.color = e.target.value;
-  savePrefs();
-  applyPrefs();
 });
 
 document.getElementById("darkToggle").addEventListener("click", () => {
