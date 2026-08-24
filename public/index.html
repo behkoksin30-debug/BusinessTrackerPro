@@ -807,6 +807,24 @@
     font-size: 11px;
     color: var(--muted);
   }
+  .opp-stat-category-select {
+    font-size: 11px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    max-width: 100%;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: inherit;
+    outline: none;
+  }
+  .opp-stat-category-select:focus {
+    box-shadow: none;
+  }
   .opp-stat-chip-editable {
     position: relative;
     cursor: pointer;
@@ -1594,7 +1612,11 @@
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('count')">
           <span class="opp-stat-number" id="customerStatsCountNum">0</span>
-          <span class="opp-stat-label" id="customerStatsCountLabel"></span>
+          <select class="opp-stat-category-select" id="customerCountCategorySelect" onclick="event.stopPropagation()">
+            <option value="" id="customerCountCatAllOpt">顾客总数量</option>
+            <option value="vip" id="customerCountCatVipOpt">VIP总数</option>
+            <option value="vvip" id="customerCountCatVvipOpt">VVIP总数</option>
+          </select>
           <svg class="opp-stat-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('month')">
@@ -2677,6 +2699,8 @@ const I18N = {
     oppMonthGoalPrompt: "设定本月 OPP 目标场数(留空表示不设定目标):",
     customerMonthGoalPrompt: "设定本月顾客消费目标 (RM,留空表示不设定目标):",
     customerCountGoalPrompt: "设定顾客总数量目标(留空表示不设定目标):",
+    customerCountGoalPromptVip: "设定VIP顾客数量目标(留空表示不设定目标):",
+    customerCountGoalPromptVvip: "设定VVIP顾客数量目标(留空表示不设定目标):",
     moveTargetCustomer: "顾客",
     moveTargetProspect: "OPP 名单",
     moveTargetPartner: "ABO",
@@ -2728,6 +2752,8 @@ const I18N = {
     abosGoalPrompt: "设定累计跟进对象目标(留空表示不设定目标):",
     customerStatsMonthLabel: "本月顾客消费 (RM)",
     customerStatsCountLabel: "顾客总数量",
+    customerCountCatVipLabel: "VIP总数",
+    customerCountCatVvipLabel: "VVIP总数",
     customerStatsTotalLabel: "累计顾客消费 (RM)",
     addBirthdayBtnLabel: "添加生日",
     modalAddBirthdayTitle: "添加生日",
@@ -2961,6 +2987,8 @@ const I18N = {
     oppMonthGoalPrompt: "Set this month's OPP goal (leave blank for no goal):",
     customerMonthGoalPrompt: "Set this month's customer spending goal (RM, leave blank for no goal):",
     customerCountGoalPrompt: "Set a target number of customers (leave blank for no goal):",
+    customerCountGoalPromptVip: "Set a target number of VIP customers (leave blank for no goal):",
+    customerCountGoalPromptVvip: "Set a target number of VVIP customers (leave blank for no goal):",
     moveTargetCustomer: "Customers",
     moveTargetProspect: "OPP List",
     moveTargetPartner: "ABO",
@@ -3012,6 +3040,8 @@ const I18N = {
     abosGoalPrompt: "Set your total follow-ups goal (leave blank for no goal):",
     customerStatsMonthLabel: "Customer spending this month (RM)",
     customerStatsCountLabel: "Total customers",
+    customerCountCatVipLabel: "VIP Total",
+    customerCountCatVvipLabel: "VVIP Total",
     customerStatsTotalLabel: "Total customer spending (RM)",
     addBirthdayBtnLabel: "Add Birthday",
     modalAddBirthdayTitle: "Add Birthday",
@@ -3121,7 +3151,7 @@ const I18N = {
 };
 
 const PREFS_KEY = "birthday-app-prefs";
-let prefs = { color: "#C4635A", dark: false, lang: "zh", appTitle: "", appSubtitle: "", customIcon: "", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0 };
+let prefs = { color: "#C4635A", dark: false, lang: "zh", appTitle: "", appSubtitle: "", customIcon: "", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0 };
 try {
   const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
   prefs = { ...prefs, ...saved };
@@ -3734,10 +3764,19 @@ function render() {
     const thisMonthTotal = sumAmount(withAmount.filter(p => p.date && p.date.startsWith(thisMonthKey)));
     const grandTotal = sumAmount(withAmount);
     customerStatsBar.style.display = "flex";
-    document.getElementById("customerStatsCountNum").textContent = prefs.customerCountGoal > 0
-      ? `${customers.length}/${prefs.customerCountGoal}`
-      : String(customers.length);
-    document.getElementById("customerStatsCountLabel").textContent = s.customerStatsCountLabel;
+    const countCategory = prefs.customerCountFilter || "";
+    const countGoalKey = countCategory === "vip" ? "customerCountGoalVip" : countCategory === "vvip" ? "customerCountGoalVvip" : "customerCountGoal";
+    const countGoal = prefs[countGoalKey] || 0;
+    const countForCategory = countCategory
+      ? customers.filter(c => (c.category || "new") === countCategory).length
+      : customers.length;
+    document.getElementById("customerStatsCountNum").textContent = countGoal > 0
+      ? `${countForCategory}/${countGoal}`
+      : String(countForCategory);
+    const categorySelect = document.getElementById("customerCountCategorySelect");
+    if (document.activeElement !== categorySelect) {
+      categorySelect.value = countCategory;
+    }
     document.getElementById("customerStatsMonthNum").textContent = prefs.customerMonthGoal > 0
       ? `${fmt(thisMonthTotal)}/${prefs.customerMonthGoal}`
       : fmt(thisMonthTotal);
@@ -3860,8 +3899,18 @@ function render() {
 
 function editCustomerGoal(which) {
   const s = t();
-  const key = which === "count" ? "customerCountGoal" : which === "month" ? "customerMonthGoal" : "customerTotalGoal";
-  const promptText = which === "count" ? s.customerCountGoalPrompt : which === "month" ? s.customerMonthGoalPrompt : s.customerTotalGoalPrompt;
+  let key, promptText;
+  if (which === "count") {
+    const filter = prefs.customerCountFilter || "";
+    key = filter === "vip" ? "customerCountGoalVip" : filter === "vvip" ? "customerCountGoalVvip" : "customerCountGoal";
+    promptText = filter === "vip" ? s.customerCountGoalPromptVip : filter === "vvip" ? s.customerCountGoalPromptVvip : s.customerCountGoalPrompt;
+  } else if (which === "month") {
+    key = "customerMonthGoal";
+    promptText = s.customerMonthGoalPrompt;
+  } else {
+    key = "customerTotalGoal";
+    promptText = s.customerTotalGoalPrompt;
+  }
   const val = prompt(promptText, prefs[key] > 0 ? String(prefs[key]) : "");
   if (val === null) return;
   const trimmed = val.trim();
@@ -3889,6 +3938,13 @@ async function loadCustomers() {
 
 document.getElementById("customerSearchInput").addEventListener("input", render);
 document.getElementById("customerSortSelect").addEventListener("change", render);
+document.getElementById("customerCountCategorySelect").addEventListener("click", (e) => e.stopPropagation());
+document.getElementById("customerCountCategorySelect").addEventListener("change", (e) => {
+  e.stopPropagation();
+  prefs.customerCountFilter = e.target.value;
+  savePrefs();
+  render();
+});
 
 function openWhatsAppChat(id) {
   const c = customers.find(x => x.id === id);
@@ -3938,6 +3994,9 @@ function renderQuickStats() {
     ? `${customers.length}/${prefs.customerCountGoal}`
     : String(customers.length);
   document.getElementById("quickStatsCustomerLabel").textContent = s.customerStatsCountLabel;
+  document.getElementById("customerCountCatAllOpt").textContent = s.customerStatsCountLabel;
+  document.getElementById("customerCountCatVipOpt").textContent = s.customerCountCatVipLabel;
+  document.getElementById("customerCountCatVvipOpt").textContent = s.customerCountCatVvipLabel;
 
   const withOppDate = prospects.filter(p => p.oppDate);
   const now = new Date();
