@@ -3781,6 +3781,19 @@ document.getElementById("saveCustomColorBtn").addEventListener("click", () => {
   closeCustomColorModal();
 });
 
+function setStatNumber(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  const len = String(text).length;
+  let size;
+  if (len <= 8) size = 19;
+  else if (len <= 11) size = 16;
+  else if (len <= 14) size = 14;
+  else size = 12;
+  el.style.fontSize = size + "px";
+}
+
 function renderStatIndicator(current, goal) {
   if (goal > 0) {
     const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
@@ -3832,22 +3845,22 @@ function render() {
     const countForCategory = countCategory
       ? customers.filter(c => (c.category || "new") === countCategory).length
       : customers.length;
-    document.getElementById("customerStatsCountNum").textContent = countGoal > 0
+    setStatNumber("customerStatsCountNum", countGoal > 0
       ? `${countForCategory}/${countGoal}`
-      : String(countForCategory);
+      : String(countForCategory));
     document.getElementById("customerStatsCountIndicator").innerHTML = renderStatIndicator(countForCategory, countGoal);
     const categorySelect = document.getElementById("customerCountCategorySelect");
     if (document.activeElement !== categorySelect) {
       categorySelect.value = countCategory;
     }
-    document.getElementById("customerStatsMonthNum").textContent = prefs.customerMonthGoal > 0
+    setStatNumber("customerStatsMonthNum", prefs.customerMonthGoal > 0
       ? `${fmt(thisMonthTotal)}/${prefs.customerMonthGoal}`
-      : fmt(thisMonthTotal);
+      : fmt(thisMonthTotal));
     document.getElementById("customerStatsMonthIndicator").innerHTML = renderStatIndicator(thisMonthTotal, prefs.customerMonthGoal || 0);
     document.getElementById("customerStatsMonthLabel").textContent = s.customerStatsMonthLabel;
-    document.getElementById("customerStatsTotalNum").textContent = prefs.customerTotalGoal > 0
+    setStatNumber("customerStatsTotalNum", prefs.customerTotalGoal > 0
       ? `${fmt(grandTotal)}/${prefs.customerTotalGoal}`
-      : fmt(grandTotal);
+      : fmt(grandTotal));
     document.getElementById("customerStatsTotalIndicator").innerHTML = renderStatIndicator(grandTotal, prefs.customerTotalGoal || 0);
     document.getElementById("customerStatsTotalLabel").textContent = s.customerStatsTotalLabel;
   } else {
@@ -4055,9 +4068,9 @@ function renderQuickStats() {
   if (!bar) return;
   const s = t();
 
-  document.getElementById("quickStatsCustomerCount").textContent = prefs.customerCountGoal > 0
+  setStatNumber("quickStatsCustomerCount", prefs.customerCountGoal > 0
     ? `${customers.length}/${prefs.customerCountGoal}`
-    : String(customers.length);
+    : String(customers.length));
   document.getElementById("quickStatsCustomerLabel").textContent = s.customerStatsCountLabel;
   document.getElementById("customerCountCatAllOpt").textContent = s.customerStatsCountLabel;
   document.getElementById("customerCountCatVipOpt").textContent = s.customerCountCatVipLabel;
@@ -4067,19 +4080,19 @@ function renderQuickStats() {
   const now = new Date();
   const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const thisMonthCount = withOppDate.filter(p => p.oppDate.startsWith(thisMonthKey)).length;
-  document.getElementById("quickStatsOppMonth").textContent = prefs.oppMonthGoal > 0
+  setStatNumber("quickStatsOppMonth", prefs.oppMonthGoal > 0
     ? `${thisMonthCount}/${prefs.oppMonthGoal}`
-    : String(thisMonthCount);
+    : String(thisMonthCount));
   document.getElementById("quickStatsOppMonthLabel").textContent = s.oppStatsThisMonthLabel;
-  document.getElementById("quickStatsOppTotal").textContent = prefs.oppGoal > 0
+  setStatNumber("quickStatsOppTotal", prefs.oppGoal > 0
     ? `${withOppDate.length}/${prefs.oppGoal}`
-    : String(withOppDate.length);
+    : String(withOppDate.length));
   document.getElementById("quickStatsOppTotalLabel").textContent = s.oppStatsTotalLabel;
 
   const soonThreshold = 7;
   const peopleWithBirthdays = [...customers, ...birthdays].filter(p => p.date);
   const soonCount = peopleWithBirthdays.filter(p => daysUntilNextBirthday(p.date) <= soonThreshold).length;
-  document.getElementById("quickStatsBirthdaySoon").textContent = String(soonCount);
+  setStatNumber("quickStatsBirthdaySoon", String(soonCount));
   document.getElementById("quickStatsBirthdayLabel").textContent = s.quickStatsBirthdayLabel;
 }
 
@@ -4162,14 +4175,14 @@ function renderProspects() {
     const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const thisMonthCount = withOppDate.filter(p => p.oppDate.startsWith(thisMonthKey)).length;
     oppStatsBar.style.display = "flex";
-    document.getElementById("oppStatsThisMonthNum").textContent = prefs.oppMonthGoal > 0
+    setStatNumber("oppStatsThisMonthNum", prefs.oppMonthGoal > 0
       ? `${thisMonthCount}/${prefs.oppMonthGoal}`
-      : String(thisMonthCount);
+      : String(thisMonthCount));
     document.getElementById("oppStatsThisMonthIndicator").innerHTML = renderStatIndicator(thisMonthCount, prefs.oppMonthGoal || 0);
     document.getElementById("oppStatsThisMonthLabel").textContent = s.oppStatsThisMonthLabel;
-    document.getElementById("oppStatsTotalNum").textContent = prefs.oppGoal > 0
+    setStatNumber("oppStatsTotalNum", prefs.oppGoal > 0
       ? `${withOppDate.length}/${prefs.oppGoal}`
-      : String(withOppDate.length);
+      : String(withOppDate.length));
     document.getElementById("oppStatsTotalIndicator").innerHTML = renderStatIndicator(withOppDate.length, prefs.oppGoal || 0);
     document.getElementById("oppStatsTotalLabel").textContent = s.oppStatsTotalLabel;
   } else {
@@ -4650,11 +4663,11 @@ function renderBirthdays() {
     const thisMonthStr = String(now.getMonth() + 1).padStart(2, "0");
     const thisMonthCount = birthdays.filter(b => b.date && b.date.startsWith(thisMonthStr + "-")).length;
     birthdaysStatsBar.style.display = "flex";
-    document.getElementById("birthdaysStatsMonthNum").textContent = thisMonthCount;
+    setStatNumber("birthdaysStatsMonthNum", thisMonthCount);
     document.getElementById("birthdaysStatsMonthLabel").textContent = s.birthdaysStatsMonthLabel;
-    document.getElementById("birthdaysStatsTotalNum").textContent = prefs.birthdaysGoal > 0
+    setStatNumber("birthdaysStatsTotalNum", prefs.birthdaysGoal > 0
       ? `${birthdays.length}/${prefs.birthdaysGoal}`
-      : String(birthdays.length);
+      : String(birthdays.length));
     document.getElementById("birthdaysStatsTotalIndicator").innerHTML = renderStatIndicator(birthdays.length, prefs.birthdaysGoal || 0);
     document.getElementById("birthdaysStatsTotalLabel").textContent = s.birthdaysStatsTotalLabel;
   } else {
@@ -5005,11 +5018,11 @@ function renderAbos() {
     const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const thisMonthCount = abos.filter(a => a.createdAt && a.createdAt.startsWith(thisMonthKey)).length;
     abosStatsBar.style.display = "flex";
-    document.getElementById("abosStatsMonthNum").textContent = thisMonthCount;
+    setStatNumber("abosStatsMonthNum", thisMonthCount);
     document.getElementById("abosStatsMonthLabel").textContent = s.abosStatsMonthLabel;
-    document.getElementById("abosStatsTotalNum").textContent = prefs.abosGoal > 0
+    setStatNumber("abosStatsTotalNum", prefs.abosGoal > 0
       ? `${abos.length}/${prefs.abosGoal}`
-      : String(abos.length);
+      : String(abos.length));
     document.getElementById("abosStatsTotalIndicator").innerHTML = renderStatIndicator(abos.length, prefs.abosGoal || 0);
     document.getElementById("abosStatsTotalLabel").textContent = s.abosStatsTotalLabel;
   } else {
@@ -5418,9 +5431,9 @@ function renderPartners() {
   const partnersStatsBar = document.getElementById("partnersStatsBar");
   if (partners.length > 0 || prefs.partnersGoal > 0) {
     partnersStatsBar.style.display = "flex";
-    document.getElementById("partnersStatsCountNum").textContent = prefs.partnersGoal > 0
+    setStatNumber("partnersStatsCountNum", prefs.partnersGoal > 0
       ? `${partners.length}/${prefs.partnersGoal}`
-      : String(partners.length);
+      : String(partners.length));
     document.getElementById("partnersStatsCountIndicator").innerHTML = renderStatIndicator(partners.length, prefs.partnersGoal || 0);
     document.getElementById("partnersStatsCountLabel").textContent = s.partnerStatsCountLabel;
   } else {
