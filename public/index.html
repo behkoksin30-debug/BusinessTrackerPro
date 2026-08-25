@@ -4023,7 +4023,11 @@ function render() {
       const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
       return sum + (isNaN(n) ? 0 : n);
     }, 0);
-    const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+    const fmt = (n) => {
+      const parts = (Number.isInteger(n) ? String(n) : n.toFixed(2)).split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.join(".");
+    };
     const thisMonthTotal = sumAmount(withAmount.filter(p => p.date && p.date.startsWith(thisMonthKey)));
     const grandTotal = sumAmount(withAmount);
     customerStatsBar.style.display = "flex";
@@ -4042,12 +4046,12 @@ function render() {
       categorySelect.value = countCategory;
     }
     setStatNumber("customerStatsMonthNum", prefs.customerMonthGoal > 0
-      ? `${fmt(thisMonthTotal)}/${prefs.customerMonthGoal}`
+      ? `${fmt(thisMonthTotal)}/${fmt(prefs.customerMonthGoal)}`
       : fmt(thisMonthTotal));
     document.getElementById("customerStatsMonthIndicator").innerHTML = renderStatIndicator(thisMonthTotal, prefs.customerMonthGoal || 0);
     document.getElementById("customerStatsMonthLabel").textContent = s.customerStatsMonthLabel;
     setStatNumber("customerStatsTotalNum", prefs.customerTotalGoal > 0
-      ? `${fmt(grandTotal)}/${prefs.customerTotalGoal}`
+      ? `${fmt(grandTotal)}/${fmt(prefs.customerTotalGoal)}`
       : fmt(grandTotal));
     document.getElementById("customerStatsTotalIndicator").innerHTML = renderStatIndicator(grandTotal, prefs.customerTotalGoal || 0);
     document.getElementById("customerStatsTotalLabel").textContent = s.customerStatsTotalLabel;
