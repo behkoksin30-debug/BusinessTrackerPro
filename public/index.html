@@ -3335,7 +3335,7 @@ const I18N = {
 };
 
 const PREFS_KEY = "birthday-app-prefs";
-let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0 };
+let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0, customerSortBy: "birthday", prospectSortBy: "oppdate", birthdaySortBy: "birthday", aboSortBy: "recent", partnerSortBy: "name" };
 try {
   const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
   prefs = { ...prefs, ...saved };
@@ -3346,6 +3346,11 @@ function savePrefs() {
 }
 
 function applyPrefs() {
+  document.getElementById("customerSortSelect").value = prefs.customerSortBy;
+  document.getElementById("prospectSortSelect").value = prefs.prospectSortBy;
+  document.getElementById("birthdaySortSelect").value = prefs.birthdaySortBy;
+  document.getElementById("aboSortSelect").value = prefs.aboSortBy;
+  document.getElementById("partnerSortSelect").value = prefs.partnerSortBy;
   document.documentElement.setAttribute("data-theme", prefs.dark ? "dark" : "light");
   document.documentElement.style.setProperty("--accent", prefs.color);
   document.getElementById("darkToggle").classList.toggle("on", prefs.dark);
@@ -4165,7 +4170,11 @@ async function loadCustomers() {
 }
 
 document.getElementById("customerSearchInput").addEventListener("input", render);
-document.getElementById("customerSortSelect").addEventListener("change", render);
+document.getElementById("customerSortSelect").addEventListener("change", (e) => {
+  prefs.customerSortBy = e.target.value;
+  savePrefs();
+  render();
+});
 document.getElementById("customerCountCategorySelect").addEventListener("click", (e) => e.stopPropagation());
 document.getElementById("customerCountCategorySelect").addEventListener("change", (e) => {
   e.stopPropagation();
@@ -4311,7 +4320,11 @@ async function loadProspects() {
 }
 
 document.getElementById("prospectSearchInput").addEventListener("input", renderProspects);
-document.getElementById("prospectSortSelect").addEventListener("change", renderProspects);
+document.getElementById("prospectSortSelect").addEventListener("change", (e) => {
+  prefs.prospectSortBy = e.target.value;
+  savePrefs();
+  renderProspects();
+});
 
 function renderProspects() {
   if (!prospectsContentEl) return;
@@ -4800,7 +4813,11 @@ async function loadBirthdays() {
 }
 
 document.getElementById("birthdaySearchInput").addEventListener("input", renderBirthdays);
-document.getElementById("birthdaySortSelect").addEventListener("change", renderBirthdays);
+document.getElementById("birthdaySortSelect").addEventListener("change", (e) => {
+  prefs.birthdaySortBy = e.target.value;
+  savePrefs();
+  renderBirthdays();
+});
 
 function renderBirthdays() {
   if (!birthdaysContentEl) return;
@@ -5156,7 +5173,11 @@ async function loadAbos() {
 }
 
 document.getElementById("aboSearchInput").addEventListener("input", renderAbos);
-document.getElementById("aboSortSelect").addEventListener("change", renderAbos);
+document.getElementById("aboSortSelect").addEventListener("change", (e) => {
+  prefs.aboSortBy = e.target.value;
+  savePrefs();
+  renderAbos();
+});
 
 function renderAbos() {
   if (!abosContentEl) return;
@@ -5654,7 +5675,11 @@ function renderPartners() {
 }
 
 document.getElementById("partnerSearchInput").addEventListener("input", renderPartners);
-document.getElementById("partnerSortSelect").addEventListener("change", renderPartners);
+document.getElementById("partnerSortSelect").addEventListener("change", (e) => {
+  prefs.partnerSortBy = e.target.value;
+  savePrefs();
+  renderPartners();
+});
 
 function editPartnersGoal() {
   const s = t();
