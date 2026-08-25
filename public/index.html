@@ -1733,6 +1733,8 @@
           <option value="updated" id="customerSortUpdatedOpt">最新更新</option>
           <option value="espring_only" id="customerSortEspringOpt">Espring User</option>
           <option value="atmosphere_only" id="customerSortAtmosphereOpt">Atmosphere User</option>
+          <option value="nutrition_only" id="customerSortNutritionOpt">Nutrilite User</option>
+          <option value="artistry_only" id="customerSortArtistryOpt">Artistry User</option>
         </select>
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
@@ -2771,6 +2773,8 @@ const I18N = {
     sortByUpdated: "最新更新",
     sortByEspringOnly: "Espring User",
     sortByAtmosphereOnly: "Atmosphere User",
+    sortByNutritionOnly: "Nutrilite User",
+    sortByArtistryOnly: "Artistry User",
     deleteFailed: "删除失败,请重试",
     errorName: "请输入顾客姓名",
     errorDate: "请选择生日日期",
@@ -3008,7 +3012,7 @@ const I18N = {
     purchasesSummary: (count, total) => `🛍 ${count} 笔订单 · 共 RM${total}`,
     inactiveWarning: "⚠️ 已超过 2 个月未购买",
     espringReminder: "💧 Espring 滤芯该更换了(购买已满一年)",
-    atmosphereReminder: "🌬️ Atmosphere 滤芯该更换了(购买已满18个月)",
+    atmosphereReminder: "💨 Atmosphere 滤芯该更换了(购买已满18个月)",
     notesFieldLabel: "备注(选填)",
     preferenceFieldLabel: "喜好(选填)",
     preferencePlaceholder: "记录顾客喜欢的产品、口味、颜色…",
@@ -3057,6 +3061,8 @@ const I18N = {
     sortByUpdated: "Recently updated",
     sortByEspringOnly: "Espring User",
     sortByAtmosphereOnly: "Atmosphere User",
+    sortByNutritionOnly: "Nutrilite User",
+    sortByArtistryOnly: "Artistry User",
     deleteFailed: "Failed to delete. Please try again.",
     errorName: "Please enter a customer name",
     errorDate: "Please select a birthday",
@@ -3300,7 +3306,7 @@ const I18N = {
     purchasesSummary: (count, total) => `🛍 ${count} purchase${count === 1 ? "" : "s"} · RM${total} total`,
     inactiveWarning: "⚠️ No purchase in over 2 months",
     espringReminder: "💧 Espring cartridge due for replacement (1 year since purchase)",
-    atmosphereReminder: "🌬️ Atmosphere filter due for replacement (18 months since purchase)",
+    atmosphereReminder: "💨 Atmosphere filter due for replacement (18 months since purchase)",
     notesFieldLabel: "Notes (optional)",
     preferenceFieldLabel: "Preferences (optional)",
     preferencePlaceholder: "Products, flavors, colors this customer likes…",
@@ -3413,6 +3419,8 @@ function applyLanguage() {
   document.getElementById("customerSortUpdatedOpt").textContent = s.sortByUpdated;
   document.getElementById("customerSortEspringOpt").textContent = s.sortByEspringOnly;
   document.getElementById("customerSortAtmosphereOpt").textContent = s.sortByAtmosphereOnly;
+  document.getElementById("customerSortNutritionOpt").textContent = s.sortByNutritionOnly;
+  document.getElementById("customerSortArtistryOpt").textContent = s.sortByArtistryOnly;
   document.getElementById("prospectSearchInput").placeholder = s.searchPlaceholder;
   document.getElementById("prospectSortOppdateOpt").textContent = s.sortByOppDate;
   document.getElementById("prospectSortNameOpt").textContent = s.sortByName;
@@ -4007,6 +4015,10 @@ function render() {
     filtered = filtered.filter(c => hasProductKeyword(c.purchases, /espring/i));
   } else if (sortBy === "atmosphere_only") {
     filtered = filtered.filter(c => hasProductKeyword(c.purchases, ATMOSPHERE_KEYWORD_REGEX));
+  } else if (sortBy === "nutrition_only") {
+    filtered = filtered.filter(c => hasProductKeyword(c.purchases, NUTRITION_KEYWORD_REGEX));
+  } else if (sortBy === "artistry_only") {
+    filtered = filtered.filter(c => hasProductKeyword(c.purchases, ARTISTRY_KEYWORD_REGEX));
   }
 
   if (filtered.length === 0) {
@@ -4081,7 +4093,7 @@ function render() {
               ${hasEspringPurchase ? `<span class="product-flag-icon" title="Espring">💧</span>` : ""}
               ${hasNutritionPurchase ? `<span class="product-flag-icon" title="营养">🌿</span>` : ""}
               ${hasArtistryPurchase ? `<span class="product-flag-icon" title="Artistry">💄</span>` : ""}
-              ${hasAtmospherePurchase ? `<span class="product-flag-icon" title="Atmosphere">🌬️</span>` : ""}
+              ${hasAtmospherePurchase ? `<span class="product-flag-icon" title="Atmosphere">💨</span>` : ""}
               ${c.notes ? `<span class="notes-dot" title="${escapeAttr(c.notes)}">📝</span>` : ""}
             </div>
             <p class="cust-meta">${hasBirthday ? s.monthDay(mm, dd) + (c.phone ? " · " + escapeHtml(c.phone) : "") : (c.phone ? escapeHtml(c.phone) : s.noBirthdayHint)}</p>
