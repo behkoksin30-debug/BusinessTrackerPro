@@ -1732,6 +1732,7 @@
           <option value="recent" id="customerSortRecentOpt">最近新增</option>
           <option value="updated" id="customerSortUpdatedOpt">最新更新</option>
           <option value="espring_only" id="customerSortEspringOpt">Espring User</option>
+          <option value="atmosphere_only" id="customerSortAtmosphereOpt">Atmosphere User</option>
         </select>
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
@@ -1902,6 +1903,7 @@
 
       <p class="detail-warn-banner" id="detailWarnBanner" style="display:none;"></p>
       <p class="detail-warn-banner" id="detailEspringBanner" style="display:none;"></p>
+      <p class="detail-warn-banner" id="detailAtmosphereBanner" style="display:none;"></p>
 
       <div id="detailPreferenceWrap" style="display:none;">
         <p class="detail-section-title" id="detailPreferenceTitle">喜好</p>
@@ -2768,7 +2770,7 @@ const I18N = {
     sortByProgress: "按进度最多",
     sortByUpdated: "最新更新",
     sortByEspringOnly: "Espring User",
-    loadFailed: "加载失败,请刷新重试",
+    sortByAtmosphereOnly: "Atmosphere User",
     deleteFailed: "删除失败,请重试",
     errorName: "请输入顾客姓名",
     errorDate: "请选择生日日期",
@@ -3006,6 +3008,7 @@ const I18N = {
     purchasesSummary: (count, total) => `🛍 ${count} 笔订单 · 共 RM${total}`,
     inactiveWarning: "⚠️ 已超过 2 个月未购买",
     espringReminder: "💧 Espring 滤芯该更换了(购买已满一年)",
+    atmosphereReminder: "🌬️ Atmosphere 滤芯该更换了(购买已满18个月)",
     notesFieldLabel: "备注(选填)",
     preferenceFieldLabel: "喜好(选填)",
     preferencePlaceholder: "记录顾客喜欢的产品、口味、颜色…",
@@ -3053,7 +3056,7 @@ const I18N = {
     sortByProgress: "By most progress",
     sortByUpdated: "Recently updated",
     sortByEspringOnly: "Espring User",
-    loadFailed: "Failed to load. Please refresh.",
+    sortByAtmosphereOnly: "Atmosphere User",
     deleteFailed: "Failed to delete. Please try again.",
     errorName: "Please enter a customer name",
     errorDate: "Please select a birthday",
@@ -3297,6 +3300,7 @@ const I18N = {
     purchasesSummary: (count, total) => `🛍 ${count} purchase${count === 1 ? "" : "s"} · RM${total} total`,
     inactiveWarning: "⚠️ No purchase in over 2 months",
     espringReminder: "💧 Espring cartridge due for replacement (1 year since purchase)",
+    atmosphereReminder: "🌬️ Atmosphere filter due for replacement (18 months since purchase)",
     notesFieldLabel: "Notes (optional)",
     preferenceFieldLabel: "Preferences (optional)",
     preferencePlaceholder: "Products, flavors, colors this customer likes…",
@@ -3325,7 +3329,7 @@ const I18N = {
 };
 
 const PREFS_KEY = "birthday-app-prefs";
-let prefs = { color: "#C4635A", dark: false, lang: "zh", appTitle: "", appSubtitle: "", customIcon: "", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0 };
+let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0 };
 try {
   const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
   prefs = { ...prefs, ...saved };
@@ -3408,6 +3412,7 @@ function applyLanguage() {
   document.getElementById("customerSortRecentOpt").textContent = s.sortByRecent;
   document.getElementById("customerSortUpdatedOpt").textContent = s.sortByUpdated;
   document.getElementById("customerSortEspringOpt").textContent = s.sortByEspringOnly;
+  document.getElementById("customerSortAtmosphereOpt").textContent = s.sortByAtmosphereOnly;
   document.getElementById("prospectSearchInput").placeholder = s.searchPlaceholder;
   document.getElementById("prospectSortOppdateOpt").textContent = s.sortByOppDate;
   document.getElementById("prospectSortNameOpt").textContent = s.sortByName;
@@ -3594,21 +3599,9 @@ function applyLanguage() {
   document.getElementById("saveDashboardTextLabel").textContent = s.saveLabel;
   renderDashboard();
   document.getElementById("appTitleLabel").textContent = s.appTitleLabel;
-  const appTitleInput = document.getElementById("appTitleInput");
-  appTitleInput.placeholder = s.title;
-  if (document.activeElement !== appTitleInput) {
-    appTitleInput.value = prefs.appTitle || "";
-  }
-  const displayTitle = (prefs.appTitle && prefs.appTitle.trim()) || s.title;
-  document.title = displayTitle;
-  document.getElementById("title").textContent = displayTitle;
+  document.getElementById("appTitleInput").placeholder = s.title;
   document.getElementById("subtitleFieldSettingsLabel").textContent = s.subtitleFieldSettingsLabel;
-  const appSubtitleInput = document.getElementById("appSubtitleInput");
-  appSubtitleInput.placeholder = s.subtitle;
-  if (document.activeElement !== appSubtitleInput) {
-    appSubtitleInput.value = prefs.appSubtitle || "";
-  }
-  document.getElementById("subtitle").textContent = (prefs.appSubtitle && prefs.appSubtitle.trim()) || s.subtitle;
+  document.getElementById("appSubtitleInput").placeholder = s.subtitle;
   document.getElementById("iconUploadLabel").textContent = s.iconUploadLabel;
   document.getElementById("iconUploadBtnText").textContent = s.iconUploadBtn;
   document.getElementById("iconResetBtn").textContent = s.iconResetBtn;
@@ -3746,6 +3739,18 @@ function getEspringReminder(purchases) {
   const lastDate = sorted[0].date;
   const days = daysSince(lastDate);
   return { lastDate, days, overdue: days >= ESPRING_REMINDER_DAYS };
+}
+
+const ATMOSPHERE_KEYWORD_REGEX = /atmosphere|空气机|filter/i;
+const ATMOSPHERE_REMINDER_DAYS = 548; // 约 18 个月
+function getAtmosphereReminder(purchases) {
+  if (!Array.isArray(purchases)) return null;
+  const matches = purchases.filter(p => p.product && ATMOSPHERE_KEYWORD_REGEX.test(p.product) && p.date && /^\d{4}-\d{2}-\d{2}$/.test(p.date));
+  if (matches.length === 0) return null;
+  const sorted = [...matches].sort((a, b) => b.date.localeCompare(a.date));
+  const lastDate = sorted[0].date;
+  const days = daysSince(lastDate);
+  return { lastDate, days, overdue: days >= ATMOSPHERE_REMINDER_DAYS };
 }
 
 function hasProductKeyword(purchases, regex) {
@@ -4000,6 +4005,8 @@ function render() {
   );
   if (sortBy === "espring_only") {
     filtered = filtered.filter(c => hasProductKeyword(c.purchases, /espring/i));
+  } else if (sortBy === "atmosphere_only") {
+    filtered = filtered.filter(c => hasProductKeyword(c.purchases, ATMOSPHERE_KEYWORD_REGEX));
   }
 
   if (filtered.length === 0) {
@@ -4048,6 +4055,9 @@ function render() {
     const hasEspringPurchase = hasProductKeyword(purchases, /espring/i);
     const hasNutritionPurchase = hasProductKeyword(purchases, NUTRITION_KEYWORD_REGEX);
     const hasArtistryPurchase = hasProductKeyword(purchases, ARTISTRY_KEYWORD_REGEX);
+    const atmosphere = getAtmosphereReminder(purchases);
+    const atmosphereLine = atmosphere && atmosphere.overdue ? `<p class="cust-meta warn-line">${s.atmosphereReminder}</p>` : "";
+    const hasAtmospherePurchase = hasProductKeyword(purchases, ATMOSPHERE_KEYWORD_REGEX);
 
     const extraBits = [];
     if (c.lastMeeting) extraBits.push(escapeHtml(s.lastMeetingRowLabel(c.lastMeeting)));
@@ -4071,6 +4081,7 @@ function render() {
               ${hasEspringPurchase ? `<span class="product-flag-icon" title="Espring">💧</span>` : ""}
               ${hasNutritionPurchase ? `<span class="product-flag-icon" title="营养">🌿</span>` : ""}
               ${hasArtistryPurchase ? `<span class="product-flag-icon" title="Artistry">💄</span>` : ""}
+              ${hasAtmospherePurchase ? `<span class="product-flag-icon" title="Atmosphere">🌬️</span>` : ""}
               ${c.notes ? `<span class="notes-dot" title="${escapeAttr(c.notes)}">📝</span>` : ""}
             </div>
             <p class="cust-meta">${hasBirthday ? s.monthDay(mm, dd) + (c.phone ? " · " + escapeHtml(c.phone) : "") : (c.phone ? escapeHtml(c.phone) : s.noBirthdayHint)}</p>
@@ -4078,6 +4089,7 @@ function render() {
             ${extraLine}
             ${warnLine}
             ${espringLine}
+            ${atmosphereLine}
           </div>
         </div>
         <div class="row-right">
@@ -5953,6 +5965,15 @@ function openDetailModal(id) {
     espringBanner.style.display = "none";
   }
 
+  const atmosphereBanner = document.getElementById("detailAtmosphereBanner");
+  const atmosphere = getAtmosphereReminder(purchases);
+  if (atmosphere && atmosphere.overdue) {
+    atmosphereBanner.style.display = "block";
+    atmosphereBanner.textContent = s.atmosphereReminder;
+  } else {
+    atmosphereBanner.style.display = "none";
+  }
+
   const preferenceWrap = document.getElementById("detailPreferenceWrap");
   if (c.preference) {
     preferenceWrap.style.display = "block";
@@ -6358,19 +6379,25 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
 });
 
 document.getElementById("appTitleInput").addEventListener("input", (e) => {
-  prefs.appTitle = e.target.value;
-  savePrefs();
+  dashboardData.appTitle = e.target.value;
   const s = t();
-  const displayTitle = (prefs.appTitle && prefs.appTitle.trim()) || s.title;
+  const displayTitle = (dashboardData.appTitle && dashboardData.appTitle.trim()) || s.title;
   document.title = displayTitle;
   document.getElementById("title").textContent = displayTitle;
 });
+document.getElementById("appTitleInput").addEventListener("blur", () => {
+  if (blockIfViewingDownline()) { renderDashboard(); return; }
+  saveDashboard();
+});
 
 document.getElementById("appSubtitleInput").addEventListener("input", (e) => {
-  prefs.appSubtitle = e.target.value;
-  savePrefs();
+  dashboardData.appSubtitle = e.target.value;
   const s = t();
-  document.getElementById("subtitle").textContent = (prefs.appSubtitle && prefs.appSubtitle.trim()) || s.subtitle;
+  document.getElementById("subtitle").textContent = (dashboardData.appSubtitle && dashboardData.appSubtitle.trim()) || s.subtitle;
+});
+document.getElementById("appSubtitleInput").addEventListener("blur", () => {
+  if (blockIfViewingDownline()) { renderDashboard(); return; }
+  saveDashboard();
 });
 
 const DEFAULT_ICON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
@@ -6378,9 +6405,9 @@ const DEFAULT_ICON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="
 function updateIconBadge() {
   const badge = document.getElementById("iconBadge");
   const preview = document.getElementById("iconUploadPreview");
-  if (prefs.customIcon) {
-    badge.innerHTML = `<img src="${prefs.customIcon}" alt="" />`;
-    preview.innerHTML = `<img src="${prefs.customIcon}" alt="" />`;
+  if (dashboardData.customIcon) {
+    badge.innerHTML = `<img src="${dashboardData.customIcon}" alt="" />`;
+    preview.innerHTML = `<img src="${dashboardData.customIcon}" alt="" />`;
   } else {
     badge.innerHTML = DEFAULT_ICON_SVG;
     preview.textContent = "👤";
@@ -6388,6 +6415,7 @@ function updateIconBadge() {
 }
 
 document.getElementById("iconUploadInput").addEventListener("change", (e) => {
+  if (blockIfViewingDownline()) { e.target.value = ""; return; }
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   const s = t();
@@ -6409,9 +6437,8 @@ document.getElementById("iconUploadInput").addEventListener("change", (e) => {
         alert(s.iconTooLargeError);
         return;
       }
-      prefs.customIcon = dataUrl;
-      savePrefs();
-      updateIconBadge();
+      dashboardData.customIcon = dataUrl;
+      saveDashboard();
     };
     img.src = ev.target.result;
   };
@@ -6419,9 +6446,9 @@ document.getElementById("iconUploadInput").addEventListener("change", (e) => {
 });
 
 document.getElementById("iconResetBtn").addEventListener("click", () => {
-  prefs.customIcon = "";
-  savePrefs();
-  updateIconBadge();
+  if (blockIfViewingDownline()) return;
+  dashboardData.customIcon = "";
+  saveDashboard();
 });
 
 /* ---------- wish modal ---------- */
@@ -6520,15 +6547,34 @@ whatsappBtn.addEventListener("click", () => {
 /* ============================================================
    Dashboard 展示区(海报 + 标语 + 公告)
    ============================================================ */
-let dashboardData = { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1 };
+let dashboardData = { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
 
 async function loadDashboard() {
   try {
     const res = await fetch("/api/dashboard");
     dashboardData = await res.json();
+    migrateLegacyBrandingIfNeeded();
     renderDashboard();
   } catch (e) {
     renderDashboard();
+  }
+}
+
+// 一次性迁移:早期版本把标题/副标题/图标存在浏览器本地(localStorage),
+// 现在改存服务器账号。只有管理员、而且服务器上还没有资料、
+// 而且本地确实留有旧资料时才会搬过去;下线账号一律维持空白,不受影响。
+function migrateLegacyBrandingIfNeeded() {
+  if (!currentUser || currentUser.role !== "admin" || viewingAsUser) return;
+  const hasServerBranding = dashboardData.appTitle || dashboardData.appSubtitle || dashboardData.customIcon;
+  const legacyTitle = prefs.appTitle || "";
+  const legacySubtitle = prefs.appSubtitle || "";
+  const legacyIcon = prefs.customIcon || "";
+  const hasLegacyBranding = legacyTitle || legacySubtitle || legacyIcon;
+  if (!hasServerBranding && hasLegacyBranding) {
+    dashboardData.appTitle = legacyTitle;
+    dashboardData.appSubtitle = legacySubtitle;
+    dashboardData.customIcon = legacyIcon;
+    saveDashboard();
   }
 }
 
@@ -6592,6 +6638,22 @@ function renderDashboard() {
   const announcementEl = document.getElementById("dashboardAnnouncementText");
   announcementEl.textContent = dashboardData.announcement || "";
   announcementEl.setAttribute("data-placeholder", s.dashboardAnnouncementPlaceholder);
+
+  const appTitleInput = document.getElementById("appTitleInput");
+  if (document.activeElement !== appTitleInput) {
+    appTitleInput.value = dashboardData.appTitle || "";
+  }
+  const displayTitle = (dashboardData.appTitle && dashboardData.appTitle.trim()) || s.title;
+  document.title = displayTitle;
+  document.getElementById("title").textContent = displayTitle;
+
+  const appSubtitleInput = document.getElementById("appSubtitleInput");
+  if (document.activeElement !== appSubtitleInput) {
+    appSubtitleInput.value = dashboardData.appSubtitle || "";
+  }
+  document.getElementById("subtitle").textContent = (dashboardData.appSubtitle && dashboardData.appSubtitle.trim()) || s.subtitle;
+
+  updateIconBadge();
 }
 
 window.addEventListener("resize", () => {
