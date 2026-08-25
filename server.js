@@ -141,6 +141,66 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
   res.json({ username: req.user.username, role: req.user.role });
 });
 
+// 修改自己的密码(需要先验证目前密码)
+app.post("/api/auth/change-password", authMiddleware, (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!newPassword || newPassword.length < 4) {
+    return res.status(400).json({ error: "新密码至少 4 位" });
+  }
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === req.user.username);
+  if (idx === -1) {
+    return res.status(404).json({ error: "账号不存在" });
+  }
+  const user = users[idx];
+  if (hashPassword(currentPassword || "", user.salt) !== user.passwordHash) {
+    return res.status(401).json({ error: "目前密码不正确" });
+  }
+  const salt = generateSalt();
+  users[idx] = { ...user, salt, passwordHash: hashPassword(newPassword, salt) };
+  writeUsers(users);
+  res.json({ success: true });
+});
+
+// 修改自己的用户名(需要先验证目前密码;同步改资料目录名称,以及自己下线的 upline 记录)
+app.post("/api/auth/change-username", authMiddleware, (req, res) => {
+  const { newUsername, currentPassword } = req.body || {};
+  const cleanNew = (newUsername || "").trim();
+  if (!cleanNew) {
+    return res.status(400).json({ error: "请填写新用户名" });
+  }
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === req.user.username);
+  if (idx === -1) {
+    return res.status(404).json({ error: "账号不存在" });
+  }
+  const user = users[idx];
+  if (hashPassword(currentPassword || "", user.salt) !== user.passwordHash) {
+    return res.status(401).json({ error: "目前密码不正确" });
+  }
+  const oldUsername = user.username;
+  if (cleanNew === oldUsername) {
+    return res.status(400).json({ error: "新用户名跟目前相同" });
+  }
+  if (users.some((u) => u.username === cleanNew)) {
+    return res.status(400).json({ error: "这个用户名已经有人用了" });
+  }
+  const oldDir = userDataDir(oldUsername);
+  const newDir = userDataDir(cleanNew);
+  if (fs.existsSync(oldDir)) {
+    fs.renameSync(oldDir, newDir);
+  }
+  users[idx] = { ...user, username: cleanNew };
+  users.forEach((u) => {
+    if (u.upline === oldUsername) u.upline = cleanNew;
+  });
+  writeUsers(users);
+  const authHeader = req.headers["authorization"] || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (token) sessions[token] = cleanNew;
+  res.json({ success: true, username: cleanNew });
+});
+
 // 登出
 app.post("/api/auth/logout", authMiddleware, (req, res) => {
   const authHeader = req.headers["authorization"] || "";
@@ -573,9 +633,12 @@ function readDashboard(username) {
       posterX: clampNumber(parsed.posterX, 0, 1, 0.5),
       posterY: clampNumber(parsed.posterY, 0, 1, 0.5),
       posterScale: clampNumber(parsed.posterScale, 1, 3, 1),
+      appTitle: (parsed.appTitle || "").toString(),
+      appSubtitle: (parsed.appSubtitle || "").toString(),
+      customIcon: (parsed.customIcon || "").toString(),
     };
   } catch (e) {
-    return { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1 };
+    return { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
   }
 }
 
@@ -588,6 +651,9 @@ function writeDashboard(username, data) {
     posterX: clampNumber(data.posterX, 0, 1, 0.5),
     posterY: clampNumber(data.posterY, 0, 1, 0.5),
     posterScale: clampNumber(data.posterScale, 1, 3, 1),
+    appTitle: (data.appTitle || "").toString().trim().slice(0, 60),
+    appSubtitle: (data.appSubtitle || "").toString().trim().slice(0, 120),
+    customIcon: (data.customIcon || "").toString(),
   };
   fs.writeFileSync(userFilePath(username, "dashboard.json"), JSON.stringify(safe, null, 2), "utf-8");
   return safe;
