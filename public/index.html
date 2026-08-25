@@ -1608,6 +1608,19 @@
               <button class="icon-upload-reset" id="iconResetBtn" type="button">重置</button>
             </div>
           </div>
+          <div class="settings-section">
+            <p class="settings-label" id="accountSettingsLabel">修改登录资料</p>
+            <p class="settings-hint" id="currentUsernameLine" style="font-size:12px; color:var(--muted); margin:0 0 8px;"></p>
+            <label class="field-label" id="newUsernameFieldLabel" style="margin-top:0;">新用户名(选填)</label>
+            <input type="text" id="newUsernameInput" autocomplete="username" />
+            <label class="field-label" id="newPasswordFieldSettingsLabel">新密码(选填,至少4位)</label>
+            <input type="password" id="newPasswordSettingsInput" autocomplete="new-password" />
+            <label class="field-label" id="currentPasswordFieldLabel">目前密码(确认身份用)</label>
+            <input type="password" id="currentPasswordInput" autocomplete="current-password" />
+            <button type="button" class="icon-upload-btn" id="saveAccountBtn" style="width:100%; text-align:center; margin-top:10px; cursor:pointer;"><span id="saveAccountLabel">保存修改</span></button>
+            <p class="error-msg" id="accountSettingsError" style="display:none;"></p>
+            <p class="error-msg" id="accountSettingsSuccess" style="display:none; color:#2F8F84;"></p>
+          </div>
           <div class="settings-section" id="downlineManageSection" style="display:none;">
             <p class="settings-label" id="downlineManageLabel">管理下线账号</p>
             <div id="downlineManageList"></div>
@@ -2889,6 +2902,18 @@ const I18N = {
     downlineSwitcherSelf: "我自己",
     viewingAsBannerText: (username) => `正在查看「${username}」的资料(只读,无法编辑)`,
     downlineManageLabel: "管理下线账号",
+    accountSettingsLabel: "修改登录资料",
+    currentUsernameLine: (username) => `目前用户名:${username}`,
+    newUsernameFieldLabel: "新用户名(选填)",
+    newPasswordFieldSettingsLabel: "新密码(选填,至少4位)",
+    currentPasswordFieldLabel: "目前密码(确认身份用)",
+    saveAccountLabel: "保存修改",
+    currentPasswordRequiredError: "请输入目前密码",
+    nothingToChangeError: "请填写要修改的用户名或密码",
+    newPasswordTooShortError: "新密码至少 4 位",
+    accountUpdateSuccess: "修改成功",
+    usernameTakenError: "这个用户名已经有人用了",
+    currentPasswordWrongError: "目前密码不正确",
     downlineEmptyHint: "还没有开任何下线账号",
     downlineAddError: "请填写用户名,密码至少 4 位",
     deleteDownlineConfirm: (username) => `确定要删除「${username}」这个账号吗?删除后他将无法再登录,但他的资料会保留(不会被删除)。`,
@@ -3183,6 +3208,18 @@ const I18N = {
     downlineSwitcherSelf: "Myself",
     viewingAsBannerText: (username) => `Viewing "${username}"'s data (read-only, cannot edit)`,
     downlineManageLabel: "Manage Downline Accounts",
+    accountSettingsLabel: "Change Login Details",
+    currentUsernameLine: (username) => `Current username: ${username}`,
+    newUsernameFieldLabel: "New username (optional)",
+    newPasswordFieldSettingsLabel: "New password (optional, min 4 characters)",
+    currentPasswordFieldLabel: "Current password (to confirm identity)",
+    saveAccountLabel: "Save Changes",
+    currentPasswordRequiredError: "Please enter your current password",
+    nothingToChangeError: "Please fill in a new username or password to change",
+    newPasswordTooShortError: "New password must be at least 4 characters",
+    accountUpdateSuccess: "Updated successfully",
+    usernameTakenError: "This username is already taken",
+    currentPasswordWrongError: "Current password is incorrect",
     downlineEmptyHint: "No downline accounts yet",
     downlineAddError: "Please fill in username, password at least 4 characters",
     deleteDownlineConfirm: (username) => `Delete the account "${username}"? They will no longer be able to log in, but their data will be kept (not deleted).`,
@@ -3590,6 +3627,13 @@ function applyLanguage() {
   document.getElementById("enterAppLabel").textContent = s.enterAppLabel;
   document.getElementById("downlineSwitcherLabel").textContent = s.downlineSwitcherLabel;
   document.getElementById("downlineManageLabel").textContent = s.downlineManageLabel;
+  document.getElementById("accountSettingsLabel").textContent = s.accountSettingsLabel;
+  document.getElementById("currentUsernameLine").textContent = currentUser ? s.currentUsernameLine(currentUser.username) : "";
+  document.getElementById("newUsernameFieldLabel").textContent = s.newUsernameFieldLabel;
+  document.getElementById("newUsernameInput").placeholder = currentUser ? currentUser.username : "";
+  document.getElementById("newPasswordFieldSettingsLabel").textContent = s.newPasswordFieldSettingsLabel;
+  document.getElementById("currentPasswordFieldLabel").textContent = s.currentPasswordFieldLabel;
+  document.getElementById("saveAccountLabel").textContent = s.saveAccountLabel;
   document.getElementById("newDownlineUsernameInput").placeholder = s.authSetupUsernameLabel;
   document.getElementById("newDownlinePasswordInput").placeholder = s.authSetupPasswordLabel;
   document.getElementById("addDownlineBtnLabel").textContent = s.addDownlineBtnLabel;
@@ -7054,6 +7098,76 @@ async function deleteDownline(username) {
     alert(s.deleteFailed);
   }
 }
+
+async function saveAccountChanges() {
+  const s = t();
+  const currentPassword = document.getElementById("currentPasswordInput").value;
+  const newUsername = document.getElementById("newUsernameInput").value.trim();
+  const newPassword = document.getElementById("newPasswordSettingsInput").value;
+  const errorEl = document.getElementById("accountSettingsError");
+  const successEl = document.getElementById("accountSettingsSuccess");
+  errorEl.style.display = "none";
+  successEl.style.display = "none";
+
+  if (!currentPassword) {
+    errorEl.textContent = s.currentPasswordRequiredError;
+    errorEl.style.display = "block";
+    return;
+  }
+  const wantsUsernameChange = newUsername && newUsername !== currentUser.username;
+  if (!wantsUsernameChange && !newPassword) {
+    errorEl.textContent = s.nothingToChangeError;
+    errorEl.style.display = "block";
+    return;
+  }
+  if (newPassword && newPassword.length < 4) {
+    errorEl.textContent = s.newPasswordTooShortError;
+    errorEl.style.display = "block";
+    return;
+  }
+
+  try {
+    if (wantsUsernameChange) {
+      const res = await fetch("/api/auth/change-username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newUsername, currentPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.error || s.errorNetwork;
+        errorEl.style.display = "block";
+        return;
+      }
+      currentUser.username = data.username;
+    }
+    if (newPassword) {
+      const res2 = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data2 = await res2.json();
+      if (!res2.ok) {
+        errorEl.textContent = data2.error || s.errorNetwork;
+        errorEl.style.display = "block";
+        return;
+      }
+    }
+    successEl.textContent = s.accountUpdateSuccess;
+    successEl.style.display = "block";
+    document.getElementById("currentPasswordInput").value = "";
+    document.getElementById("newUsernameInput").value = "";
+    document.getElementById("newPasswordSettingsInput").value = "";
+    document.getElementById("currentUsernameLine").textContent = s.currentUsernameLine(currentUser.username);
+    document.getElementById("newUsernameInput").placeholder = currentUser.username;
+  } catch (e) {
+    errorEl.textContent = s.errorNetwork;
+    errorEl.style.display = "block";
+  }
+}
+
+document.getElementById("saveAccountBtn").addEventListener("click", saveAccountChanges);
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   if (confirm(t().logoutConfirm)) logout();
