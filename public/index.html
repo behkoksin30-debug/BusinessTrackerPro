@@ -457,6 +457,9 @@
     color: #fff;
     margin: 0 0 6px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .dashboard-tagline:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); font-weight: 500; font-family: 'Manrope', sans-serif; font-size: 14px; }
   .dashboard-announcement {
@@ -464,8 +467,9 @@
     font-style: italic;
     color: rgba(255,255,255,0.85);
     margin: 0;
-    white-space: pre-wrap;
-    line-height: 1.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
   }
   .dashboard-announcement:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.55); font-style: normal; }
@@ -4066,23 +4070,17 @@ function fitDashboardAnnouncement(text) {
   el.textContent = text || "";
 }
 
-function fitOneOverlayText(el, startSize, minSize, maxLines) {
+function fitOneOverlayTextWidth(el, startSize, minSize) {
   if (!el.textContent) {
     el.style.fontSize = "";
     return;
   }
   let size = startSize;
   el.style.fontSize = size + "px";
-  let lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-  if (isNaN(lineHeight)) lineHeight = size * 1.3;
-  let maxHeight = lineHeight * maxLines;
   let guard = 0;
-  while (el.scrollHeight > maxHeight + 1 && size > minSize && guard < 40) {
+  while (el.scrollWidth > el.clientWidth + 1 && size > minSize && guard < 60) {
     size -= 0.5;
     el.style.fontSize = size + "px";
-    lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-    if (isNaN(lineHeight)) lineHeight = size * 1.3;
-    maxHeight = lineHeight * maxLines;
     guard++;
   }
 }
@@ -4094,31 +4092,8 @@ function fitDashboardOverlayText() {
   if (!overlay || !taglineEl || !announcementEl) return;
   if (!taglineEl.textContent && !announcementEl.textContent) return;
 
-  fitOneOverlayText(taglineEl, 19, 11, 2);
-  fitOneOverlayText(announcementEl, 13, 9, 2);
-
-  // 最后再确认标题+副标题加起来有没有超出照片实际能给的高度,
-  // 如果还是太高,两个一起再往下缩一点,确保不会溢出海报范围
-  const availableHeight = overlay.clientHeight - 32;
-  if (availableHeight <= 0) return;
-  let taglineSize = parseFloat(taglineEl.style.fontSize) || 19;
-  let announcementSize = parseFloat(announcementEl.style.fontSize) || 13;
-  let guard = 0;
-  while (
-    (taglineEl.scrollHeight + announcementEl.scrollHeight) > availableHeight &&
-    (taglineSize > 11 || announcementSize > 9) &&
-    guard < 40
-  ) {
-    if (taglineSize > 11) {
-      taglineSize -= 0.5;
-      taglineEl.style.fontSize = taglineSize + "px";
-    }
-    if (announcementSize > 9) {
-      announcementSize -= 0.5;
-      announcementEl.style.fontSize = announcementSize + "px";
-    }
-    guard++;
-  }
+  fitOneOverlayTextWidth(taglineEl, 19, 8);
+  fitOneOverlayTextWidth(announcementEl, 13, 7);
 }
 
 function renderStatIndicator(current, goal) {
