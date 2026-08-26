@@ -460,6 +460,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
   .dashboard-tagline:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); font-weight: 500; font-family: 'Manrope', sans-serif; font-size: 14px; }
   .dashboard-announcement {
@@ -471,6 +475,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
   .dashboard-announcement:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.55); font-style: normal; }
 
@@ -4070,7 +4078,7 @@ function fitDashboardAnnouncement(text) {
   el.textContent = text || "";
 }
 
-function fitOneOverlayTextWidth(el, startSize, minSize) {
+function fitOneOverlayTextWidth(el, startSize, minSize, targetWidth) {
   if (!el.textContent) {
     el.style.fontSize = "";
     return;
@@ -4078,7 +4086,7 @@ function fitOneOverlayTextWidth(el, startSize, minSize) {
   let size = startSize;
   el.style.fontSize = size + "px";
   let guard = 0;
-  while (el.scrollWidth > el.clientWidth + 1 && size > minSize && guard < 60) {
+  while (el.scrollWidth > targetWidth + 1 && size > minSize && guard < 80) {
     size -= 0.5;
     el.style.fontSize = size + "px";
     guard++;
@@ -4092,8 +4100,14 @@ function fitDashboardOverlayText() {
   if (!overlay || !taglineEl || !announcementEl) return;
   if (!taglineEl.textContent && !announcementEl.textContent) return;
 
-  fitOneOverlayTextWidth(taglineEl, 19, 6);
-  fitOneOverlayTextWidth(announcementEl, 13, 5.5);
+  const cs = getComputedStyle(overlay);
+  const padLeft = parseFloat(cs.paddingLeft) || 0;
+  const padRight = parseFloat(cs.paddingRight) || 0;
+  const targetWidth = overlay.clientWidth - padLeft - padRight;
+  if (targetWidth <= 0) return;
+
+  fitOneOverlayTextWidth(taglineEl, 19, 6, targetWidth);
+  fitOneOverlayTextWidth(announcementEl, 13, 5.5, targetWidth);
 }
 
 function renderStatIndicator(current, goal) {
