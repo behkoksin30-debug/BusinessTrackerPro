@@ -4066,6 +4066,27 @@ function fitDashboardAnnouncement(text) {
   el.textContent = text || "";
 }
 
+function fitOneOverlayText(el, startSize, minSize, maxLines) {
+  if (!el.textContent) {
+    el.style.fontSize = "";
+    return;
+  }
+  let size = startSize;
+  el.style.fontSize = size + "px";
+  let lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+  if (isNaN(lineHeight)) lineHeight = size * 1.3;
+  let maxHeight = lineHeight * maxLines;
+  let guard = 0;
+  while (el.scrollHeight > maxHeight + 1 && size > minSize && guard < 40) {
+    size -= 0.5;
+    el.style.fontSize = size + "px";
+    lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+    if (isNaN(lineHeight)) lineHeight = size * 1.3;
+    maxHeight = lineHeight * maxLines;
+    guard++;
+  }
+}
+
 function fitDashboardOverlayText() {
   const overlay = document.getElementById("dashboardTextOverlayWrap");
   const taglineEl = document.getElementById("dashboardTaglineText");
@@ -4073,28 +4094,26 @@ function fitDashboardOverlayText() {
   if (!overlay || !taglineEl || !announcementEl) return;
   if (!taglineEl.textContent && !announcementEl.textContent) return;
 
-  const availableHeight = overlay.clientHeight - 32; // 扣掉上下 padding
+  fitOneOverlayText(taglineEl, 19, 11, 2);
+  fitOneOverlayText(announcementEl, 13, 9, 2);
+
+  // 最后再确认标题+副标题加起来有没有超出照片实际能给的高度,
+  // 如果还是太高,两个一起再往下缩一点,确保不会溢出海报范围
+  const availableHeight = overlay.clientHeight - 32;
   if (availableHeight <= 0) return;
-
-  let taglineSize = 19;
-  let announcementSize = 13;
-  const taglineMin = 11;
-  const announcementMin = 9;
-
-  taglineEl.style.fontSize = taglineSize + "px";
-  announcementEl.style.fontSize = announcementSize + "px";
-
+  let taglineSize = parseFloat(taglineEl.style.fontSize) || 19;
+  let announcementSize = parseFloat(announcementEl.style.fontSize) || 13;
   let guard = 0;
   while (
     (taglineEl.scrollHeight + announcementEl.scrollHeight) > availableHeight &&
-    (taglineSize > taglineMin || announcementSize > announcementMin) &&
+    (taglineSize > 11 || announcementSize > 9) &&
     guard < 40
   ) {
-    if (taglineSize > taglineMin) {
+    if (taglineSize > 11) {
       taglineSize -= 0.5;
       taglineEl.style.fontSize = taglineSize + "px";
     }
-    if (announcementSize > announcementMin) {
+    if (announcementSize > 9) {
       announcementSize -= 0.5;
       announcementEl.style.fontSize = announcementSize + "px";
     }
