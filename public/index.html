@@ -4059,27 +4059,47 @@ function setStatNumber(id, text) {
 function fitDashboardTagline(text) {
   const el = document.getElementById("dashboardTaglineText");
   el.textContent = text || "";
-  const len = String(text || "").length;
-  let size;
-  if (len <= 8) size = 19;
-  else if (len <= 14) size = 17;
-  else if (len <= 20) size = 15;
-  else if (len <= 28) size = 14;
-  else size = 13;
-  el.style.fontSize = size + "px";
 }
 
 function fitDashboardAnnouncement(text) {
   const el = document.getElementById("dashboardAnnouncementText");
   el.textContent = text || "";
-  const len = String(text || "").length;
-  let size;
-  if (len <= 20) size = 13;
-  else if (len <= 35) size = 12;
-  else if (len <= 55) size = 11.5;
-  else if (len <= 80) size = 11;
-  else size = 10.5;
-  el.style.fontSize = size + "px";
+}
+
+function fitDashboardOverlayText() {
+  const overlay = document.getElementById("dashboardTextOverlayWrap");
+  const taglineEl = document.getElementById("dashboardTaglineText");
+  const announcementEl = document.getElementById("dashboardAnnouncementText");
+  if (!overlay || !taglineEl || !announcementEl) return;
+  if (!taglineEl.textContent && !announcementEl.textContent) return;
+
+  const availableHeight = overlay.clientHeight - 32; // 扣掉上下 padding
+  if (availableHeight <= 0) return;
+
+  let taglineSize = 19;
+  let announcementSize = 13;
+  const taglineMin = 11;
+  const announcementMin = 9;
+
+  taglineEl.style.fontSize = taglineSize + "px";
+  announcementEl.style.fontSize = announcementSize + "px";
+
+  let guard = 0;
+  while (
+    (taglineEl.scrollHeight + announcementEl.scrollHeight) > availableHeight &&
+    (taglineSize > taglineMin || announcementSize > announcementMin) &&
+    guard < 40
+  ) {
+    if (taglineSize > taglineMin) {
+      taglineSize -= 0.5;
+      taglineEl.style.fontSize = taglineSize + "px";
+    }
+    if (announcementSize > announcementMin) {
+      announcementSize -= 0.5;
+      announcementEl.style.fontSize = announcementSize + "px";
+    }
+    guard++;
+  }
 }
 
 function renderStatIndicator(current, goal) {
@@ -6827,6 +6847,7 @@ function renderDashboard() {
   const textOverlayEl = document.getElementById("dashboardTextOverlayWrap");
   const hasOverlayContent = !!((dashboardData.tagline && dashboardData.tagline.trim()) || (dashboardData.announcement && dashboardData.announcement.trim()));
   textOverlayEl.classList.toggle("has-content", hasOverlayContent);
+  requestAnimationFrame(fitDashboardOverlayText);
 
   const appTitleInput = document.getElementById("appTitleInput");
   if (document.activeElement !== appTitleInput) {
@@ -6851,6 +6872,7 @@ window.addEventListener("resize", () => {
   if (dashboardData.poster && img && img.naturalWidth) {
     applyPosterTransform(img, posterWrap, dashboardData.posterX, dashboardData.posterY, dashboardData.posterScale);
   }
+  fitDashboardOverlayText();
 });
 
 function togglePosterActionsMenu() {
