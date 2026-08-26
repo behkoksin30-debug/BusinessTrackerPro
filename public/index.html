@@ -4058,6 +4058,7 @@ function setStatNumber(id, text) {
 
 function fitDashboardTagline(text) {
   const el = document.getElementById("dashboardTaglineText");
+  el.textContent = text || "";
   const len = String(text || "").length;
   let size;
   if (len <= 8) size = 19;
@@ -4070,6 +4071,7 @@ function fitDashboardTagline(text) {
 
 function fitDashboardAnnouncement(text) {
   const el = document.getElementById("dashboardAnnouncementText");
+  el.textContent = text || "";
   const len = String(text || "").length;
   let size;
   if (len <= 20) size = 13;
