@@ -427,23 +427,58 @@
     accent-color: var(--accent);
   }
   .poster-zoom-row svg { color: var(--muted-light); flex-shrink: 0; }
-  .dashboard-text-wrap { cursor: pointer; }
+  .dashboard-poster-goal-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.16);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .dashboard-text-overlay {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    width: 62%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 14px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .dashboard-text-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%);
+    z-index: -1;
+  }
   .dashboard-tagline {
     font-family: 'Manrope', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 4px;
+    font-size: 19px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 6px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
-  .dashboard-tagline:empty::before { content: attr(data-placeholder); color: var(--muted-light); font-weight: 500; font-family: 'Manrope', sans-serif; font-size: 14px; }
+  .dashboard-tagline:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.6); font-weight: 500; font-family: 'Manrope', sans-serif; font-size: 14px; }
   .dashboard-announcement {
     font-size: 13px;
-    color: var(--muted);
+    font-style: italic;
+    color: rgba(255,255,255,0.85);
     margin: 0;
     white-space: pre-wrap;
     line-height: 1.6;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
   }
-  .dashboard-announcement:empty::before { content: attr(data-placeholder); color: var(--muted-light); }
+  .dashboard-announcement:empty::before { content: attr(data-placeholder); color: rgba(255,255,255,0.55); font-style: normal; }
 
   .enter-app-btn {
     width: 100%;
@@ -1680,6 +1715,12 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           <span id="dashboardPosterPlaceholderText">点击上传海报</span>
         </div>
+        <div class="dashboard-poster-goal-badge" id="dashboardGoalBadge">我的目标</div>
+        <div class="dashboard-text-overlay" id="dashboardTextOverlayWrap" onclick="event.stopPropagation(); openDashboardTextModal()">
+          <div class="dashboard-text-scrim"></div>
+          <p class="dashboard-tagline" id="dashboardTaglineText"></p>
+          <p class="dashboard-announcement" id="dashboardAnnouncementText"></p>
+        </div>
         <div class="dashboard-poster-actions" id="dashboardPosterActions" style="display:none;">
           <div class="poster-actions-menu" id="posterActionsMenu">
             <button type="button" class="poster-icon-btn" id="dashboardPosterAdjustBtn" onclick="event.stopPropagation(); openPosterEditModal()" aria-label="调整位置" title="调整位置">
@@ -1698,11 +1739,6 @@
         </div>
       </div>
       <input type="file" accept="image/*" id="dashboardPosterInput" style="display:none;" />
-
-      <div class="dashboard-text-wrap" onclick="openDashboardTextModal()">
-        <p class="dashboard-tagline" id="dashboardTaglineText"></p>
-        <p class="dashboard-announcement" id="dashboardAnnouncementText"></p>
-      </div>
     </div>
 
     <div class="opp-stats-bar" id="dashboardQuickStats">
