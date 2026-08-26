@@ -1764,16 +1764,19 @@
         <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
         <div class="stat-number-row" id="quickStatsCustomerCount"></div>
           <span class="opp-stat-label" id="quickStatsCustomerLabel"></span>
+          <div class="opp-stat-indicator" id="quickStatsCustomerIndicator"></div>
       </div>
       <div class="opp-stat-chip">
         <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
         <div class="stat-number-row" id="quickStatsOppMonth"></div>
           <span class="opp-stat-label" id="quickStatsOppMonthLabel"></span>
+          <div class="opp-stat-indicator" id="quickStatsOppMonthIndicator"></div>
       </div>
       <div class="opp-stat-chip">
         <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
         <div class="stat-number-row" id="quickStatsOppTotal"></div>
           <span class="opp-stat-label" id="quickStatsOppTotalLabel"></span>
+          <div class="opp-stat-indicator" id="quickStatsOppTotalIndicator"></div>
       </div>
       <div class="opp-stat-chip">
         <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 8V4"/><path d="M9 4h6"/></svg></span>
@@ -4393,6 +4396,7 @@ function renderQuickStats() {
   const s = t();
 
   setStatNumber("quickStatsCustomerCount", customers.length, prefs.customerCountGoal > 0 ? prefs.customerCountGoal : null);
+  document.getElementById("quickStatsCustomerIndicator").innerHTML = prefs.customerCountGoal > 0 ? renderStatIndicator(customers.length, prefs.customerCountGoal) : "";
   document.getElementById("quickStatsCustomerLabel").textContent = s.customerStatsCountLabel;
   document.getElementById("customerCountCatAllOpt").textContent = s.customerStatsCountLabel;
   document.getElementById("customerCountCatVipOpt").textContent = s.customerCountCatVipLabel;
@@ -4403,8 +4407,10 @@ function renderQuickStats() {
   const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const thisMonthCount = withOppDate.filter(p => p.oppDate.startsWith(thisMonthKey)).length;
   setStatNumber("quickStatsOppMonth", thisMonthCount, prefs.oppMonthGoal > 0 ? prefs.oppMonthGoal : null);
+  document.getElementById("quickStatsOppMonthIndicator").innerHTML = prefs.oppMonthGoal > 0 ? renderStatIndicator(thisMonthCount, prefs.oppMonthGoal) : "";
   document.getElementById("quickStatsOppMonthLabel").textContent = s.oppStatsThisMonthLabel;
   setStatNumber("quickStatsOppTotal", withOppDate.length, prefs.oppGoal > 0 ? prefs.oppGoal : null);
+  document.getElementById("quickStatsOppTotalIndicator").innerHTML = prefs.oppGoal > 0 ? renderStatIndicator(withOppDate.length, prefs.oppGoal) : "";
   document.getElementById("quickStatsOppTotalLabel").textContent = s.oppStatsTotalLabel;
 
   const soonThreshold = 7;
