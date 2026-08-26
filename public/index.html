@@ -427,20 +427,6 @@
     accent-color: var(--accent);
   }
   .poster-zoom-row svg { color: var(--muted-light); flex-shrink: 0; }
-  .dashboard-poster-goal-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255,255,255,0.16);
-    backdrop-filter: blur(4px);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 999px;
-    z-index: 2;
-    pointer-events: none;
-  }
   .dashboard-text-overlay {
     position: absolute;
     left: 0;
@@ -449,7 +435,7 @@
     width: 62%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     padding: 16px 14px;
     cursor: pointer;
     z-index: 2;
@@ -457,8 +443,12 @@
   .dashboard-text-scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%);
+    background: transparent;
     z-index: -1;
+    transition: background 0.15s;
+  }
+  .dashboard-text-overlay.has-content .dashboard-text-scrim {
+    background: linear-gradient(105deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.22) 55%, rgba(0,0,0,0) 100%);
   }
   .dashboard-tagline {
     font-family: 'Manrope', sans-serif;
@@ -1715,7 +1705,6 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           <span id="dashboardPosterPlaceholderText">点击上传海报</span>
         </div>
-        <div class="dashboard-poster-goal-badge" id="dashboardGoalBadge">我的目标</div>
         <div class="dashboard-text-overlay" id="dashboardTextOverlayWrap" onclick="event.stopPropagation(); openDashboardTextModal()">
           <div class="dashboard-text-scrim"></div>
           <p class="dashboard-tagline" id="dashboardTaglineText"></p>
@@ -6808,6 +6797,10 @@ function renderDashboard() {
   const announcementEl = document.getElementById("dashboardAnnouncementText");
   announcementEl.textContent = dashboardData.announcement || "";
   announcementEl.setAttribute("data-placeholder", s.dashboardAnnouncementPlaceholder);
+
+  const textOverlayEl = document.getElementById("dashboardTextOverlayWrap");
+  const hasOverlayContent = !!((dashboardData.tagline && dashboardData.tagline.trim()) || (dashboardData.announcement && dashboardData.announcement.trim()));
+  textOverlayEl.classList.toggle("has-content", hasOverlayContent);
 
   const appTitleInput = document.getElementById("appTitleInput");
   if (document.activeElement !== appTitleInput) {
