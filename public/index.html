@@ -432,7 +432,7 @@
     left: 0;
     bottom: 0;
     top: 0;
-    width: 62%;
+    width: 33%;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -4056,6 +4056,30 @@ function setStatNumber(id, text) {
   el.style.fontSize = size + "px";
 }
 
+function fitDashboardTagline(text) {
+  const el = document.getElementById("dashboardTaglineText");
+  const len = String(text || "").length;
+  let size;
+  if (len <= 8) size = 19;
+  else if (len <= 14) size = 17;
+  else if (len <= 20) size = 15;
+  else if (len <= 28) size = 14;
+  else size = 13;
+  el.style.fontSize = size + "px";
+}
+
+function fitDashboardAnnouncement(text) {
+  const el = document.getElementById("dashboardAnnouncementText");
+  const len = String(text || "").length;
+  let size;
+  if (len <= 20) size = 13;
+  else if (len <= 35) size = 12;
+  else if (len <= 55) size = 11.5;
+  else if (len <= 80) size = 11;
+  else size = 10.5;
+  el.style.fontSize = size + "px";
+}
+
 function renderStatIndicator(current, goal) {
   if (goal > 0) {
     const pct = Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
@@ -6791,11 +6815,11 @@ function renderDashboard() {
   removeBtn.setAttribute("aria-label", s.dashboardPosterRemoveLabel);
 
   const taglineEl = document.getElementById("dashboardTaglineText");
-  taglineEl.textContent = dashboardData.tagline || "";
+  fitDashboardTagline(dashboardData.tagline || "");
   taglineEl.setAttribute("data-placeholder", s.dashboardTaglinePlaceholder);
 
   const announcementEl = document.getElementById("dashboardAnnouncementText");
-  announcementEl.textContent = dashboardData.announcement || "";
+  fitDashboardAnnouncement(dashboardData.announcement || "");
   announcementEl.setAttribute("data-placeholder", s.dashboardAnnouncementPlaceholder);
 
   const textOverlayEl = document.getElementById("dashboardTextOverlayWrap");
