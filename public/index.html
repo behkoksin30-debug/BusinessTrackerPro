@@ -303,7 +303,7 @@
     padding: 13px 0;
     border-radius: 14px;
     background: var(--accent);
-    color: var(--accent-text);
+    color: #fff;
     border: none;
     font-size: 14px;
     font-weight: 600;
@@ -451,7 +451,7 @@
     margin-top: 4px;
     border-radius: 14px;
     background: var(--accent);
-    color: var(--accent-text);
+    color: #fff;
     border: none;
     font-size: 14px;
     font-weight: 600;
@@ -707,14 +707,20 @@
     display: block;
   }
   .field-label:first-of-type { margin-top: 4px; }
-  .downline-switcher-label-row {
-    display: flex !important;
+  .downline-switcher-select-wrap {
+    position: relative;
+    display: flex;
     align-items: center;
-    gap: 5px;
   }
   .downline-switcher-icon {
+    position: absolute;
+    left: 14px;
     color: var(--accent);
     flex-shrink: 0;
+    pointer-events: none;
+  }
+  .downline-switcher-select-wrap select {
+    padding-left: 36px;
   }
   input[type="text"], input[type="date"], input[type="tel"], textarea {
     width: 100%;
@@ -1654,13 +1660,13 @@
     <p class="subtitle" id="subtitle">记录顾客资料、购买记录与生日,轻松跟进每一位顾客</p>
 
     <div class="downline-switcher-wrap" id="downlineSwitcherWrap" style="display:none;">
-      <label class="field-label downline-switcher-label-row" id="downlineSwitcherLabel" style="margin-top:0;">
+      <label class="field-label" id="downlineSwitcherLabel" style="margin-top:0;">查看资料</label>
+      <div class="downline-switcher-select-wrap">
         <svg class="downline-switcher-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span id="downlineSwitcherLabelText">查看资料</span>
-      </label>
-      <select id="downlineSwitcherSelect">
-        <option value="" id="downlineSwitcherSelfOpt">我自己</option>
-      </select>
+        <select id="downlineSwitcherSelect">
+          <option value="" id="downlineSwitcherSelfOpt">我自己</option>
+        </select>
+      </div>
     </div>
 
     <div class="viewing-as-banner" id="viewingAsBanner" style="display:none;">
@@ -3668,7 +3674,7 @@ function applyLanguage() {
   document.getElementById("cancelCustomColorLabel").textContent = s.cancelLabel;
   document.getElementById("saveCustomColorLabel").textContent = s.saveLabel;
   document.getElementById("enterAppLabel").textContent = s.enterAppLabel;
-  document.getElementById("downlineSwitcherLabelText").textContent = s.downlineSwitcherLabel;
+  document.getElementById("downlineSwitcherLabel").textContent = s.downlineSwitcherLabel;
   document.getElementById("downlineManageLabel").textContent = s.downlineManageLabel;
   document.getElementById("accountSettingsLabel").textContent = s.accountSettingsLabel;
   document.getElementById("currentUsernameLine").textContent = currentUser ? s.currentUsernameLine(currentUser.username) : "";
