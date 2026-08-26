@@ -4092,8 +4092,8 @@ function fitDashboardOverlayText() {
   if (!overlay || !taglineEl || !announcementEl) return;
   if (!taglineEl.textContent && !announcementEl.textContent) return;
 
-  fitOneOverlayTextWidth(taglineEl, 19, 8);
-  fitOneOverlayTextWidth(announcementEl, 13, 7);
+  fitOneOverlayTextWidth(taglineEl, 19, 6);
+  fitOneOverlayTextWidth(announcementEl, 13, 5.5);
 }
 
 function renderStatIndicator(current, goal) {
@@ -6804,7 +6804,10 @@ function renderDashboard() {
   const placeholder = document.getElementById("dashboardPosterPlaceholder");
   const actions = document.getElementById("dashboardPosterActions");
   if (dashboardData.poster) {
-    const applyNow = () => applyPosterTransform(img, posterWrap, dashboardData.posterX, dashboardData.posterY, dashboardData.posterScale);
+    const applyNow = () => {
+      applyPosterTransform(img, posterWrap, dashboardData.posterX, dashboardData.posterY, dashboardData.posterScale);
+      fitDashboardOverlayText();
+    };
     img.onload = applyNow;
     img.src = dashboardData.poster;
     img.style.display = "block";
@@ -6841,7 +6844,10 @@ function renderDashboard() {
   const textOverlayEl = document.getElementById("dashboardTextOverlayWrap");
   const hasOverlayContent = !!((dashboardData.tagline && dashboardData.tagline.trim()) || (dashboardData.announcement && dashboardData.announcement.trim()));
   textOverlayEl.classList.toggle("has-content", hasOverlayContent);
-  requestAnimationFrame(fitDashboardOverlayText);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(fitDashboardOverlayText);
+  });
+  setTimeout(fitDashboardOverlayText, 150);
 
   const appTitleInput = document.getElementById("appTitleInput");
   if (document.activeElement !== appTitleInput) {
