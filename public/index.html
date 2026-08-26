@@ -867,18 +867,25 @@
     padding: 12px 14px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 10px;
+  }
+  .opp-stat-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
   .opp-stat-number {
     font-family: 'Manrope', sans-serif;
     font-size: 19px;
     font-weight: 800;
-    color: var(--accent);
+    color: var(--text);
     line-height: 1.1;
-  }
-  html[data-theme="dark"] .opp-stat-number {
-    text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
   }
   .opp-stat-label {
     font-size: 10px;
@@ -905,10 +912,7 @@
   .opp-stat-chip-editable {
     position: relative;
     cursor: pointer;
-    flex-direction: row;
-    align-items: center;
     justify-content: space-between;
-    gap: 6px;
   }
   .opp-stat-chip-editable:hover { border-color: var(--accent); }
   .opp-stat-chip-main {
@@ -916,6 +920,7 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    flex: 1;
   }
   .opp-stat-indicator {
     flex-shrink: 0;
@@ -1684,20 +1689,32 @@
 
     <div class="opp-stats-bar" id="dashboardQuickStats">
       <div class="opp-stat-chip">
-        <span class="opp-stat-number" id="quickStatsCustomerCount">0</span>
-        <span class="opp-stat-label" id="quickStatsCustomerLabel"></span>
+        <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <div class="opp-stat-chip-main">
+          <span class="opp-stat-number" id="quickStatsCustomerCount">0</span>
+          <span class="opp-stat-label" id="quickStatsCustomerLabel"></span>
+        </div>
       </div>
       <div class="opp-stat-chip">
-        <span class="opp-stat-number" id="quickStatsOppMonth">0</span>
-        <span class="opp-stat-label" id="quickStatsOppMonthLabel"></span>
+        <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+        <div class="opp-stat-chip-main">
+          <span class="opp-stat-number" id="quickStatsOppMonth">0</span>
+          <span class="opp-stat-label" id="quickStatsOppMonthLabel"></span>
+        </div>
       </div>
       <div class="opp-stat-chip">
-        <span class="opp-stat-number" id="quickStatsOppTotal">0</span>
-        <span class="opp-stat-label" id="quickStatsOppTotalLabel"></span>
+        <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+        <div class="opp-stat-chip-main">
+          <span class="opp-stat-number" id="quickStatsOppTotal">0</span>
+          <span class="opp-stat-label" id="quickStatsOppTotalLabel"></span>
+        </div>
       </div>
       <div class="opp-stat-chip">
-        <span class="opp-stat-number" id="quickStatsBirthdaySoon">0</span>
-        <span class="opp-stat-label" id="quickStatsBirthdayLabel"></span>
+        <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 8V4"/><path d="M9 4h6"/></svg></span>
+        <div class="opp-stat-chip-main">
+          <span class="opp-stat-number" id="quickStatsBirthdaySoon">0</span>
+          <span class="opp-stat-label" id="quickStatsBirthdayLabel"></span>
+        </div>
       </div>
     </div>
 
@@ -1752,6 +1769,7 @@
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('count')">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="customerStatsCountNum">0</span>
             <select class="opp-stat-category-select" id="customerCountCategorySelect" onclick="event.stopPropagation()">
@@ -1763,6 +1781,7 @@
           <div class="opp-stat-indicator" id="customerStatsCountIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('month')">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="customerStatsMonthNum">0</span>
             <span class="opp-stat-label" id="customerStatsMonthLabel"></span>
@@ -1770,6 +1789,7 @@
           <div class="opp-stat-indicator" id="customerStatsMonthIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('total')">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="customerStatsTotalNum">0</span>
             <span class="opp-stat-label" id="customerStatsTotalLabel"></span>
@@ -1795,6 +1815,7 @@
       </div>
       <div class="opp-stats-bar" id="oppStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editOppGoal('month')">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="oppStatsThisMonthNum">0</span>
             <span class="opp-stat-label" id="oppStatsThisMonthLabel"></span>
@@ -1802,6 +1823,7 @@
           <div class="opp-stat-indicator" id="oppStatsThisMonthIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" id="oppStatsTotalChip" onclick="editOppGoal('total')">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="oppStatsTotalNum">0</span>
             <span class="opp-stat-label" id="oppStatsTotalLabel"></span>
@@ -1825,10 +1847,14 @@
       </div>
       <div class="opp-stats-bar" id="birthdaysStatsBar" style="display:none;">
         <div class="opp-stat-chip">
-          <span class="opp-stat-number" id="birthdaysStatsMonthNum">0</span>
-          <span class="opp-stat-label" id="birthdaysStatsMonthLabel"></span>
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 8V4"/><path d="M9 4h6"/></svg></span>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="birthdaysStatsMonthNum">0</span>
+            <span class="opp-stat-label" id="birthdaysStatsMonthLabel"></span>
+          </div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editBirthdaysGoal()">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 8V4"/><path d="M9 4h6"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="birthdaysStatsTotalNum">0</span>
             <span class="opp-stat-label" id="birthdaysStatsTotalLabel"></span>
@@ -1854,10 +1880,14 @@
       </div>
       <div class="opp-stats-bar" id="abosStatsBar" style="display:none;">
         <div class="opp-stat-chip">
-          <span class="opp-stat-number" id="abosStatsMonthNum">0</span>
-          <span class="opp-stat-label" id="abosStatsMonthLabel"></span>
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg></span>
+          <div class="opp-stat-chip-main">
+            <span class="opp-stat-number" id="abosStatsMonthNum">0</span>
+            <span class="opp-stat-label" id="abosStatsMonthLabel"></span>
+          </div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editAbosGoal()">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="m9 16 2 2 4-4"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="abosStatsTotalNum">0</span>
             <span class="opp-stat-label" id="abosStatsTotalLabel"></span>
@@ -1882,6 +1912,7 @@
       </div>
       <div class="opp-stats-bar" id="partnersStatsBar" style="display:none;">
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editPartnersGoal()">
+          <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M8 18a4 4 0 0 1 8 0"/></svg></span>
           <div class="opp-stat-chip-main">
             <span class="opp-stat-number" id="partnersStatsCountNum">0</span>
             <span class="opp-stat-label" id="partnersStatsCountLabel"></span>
