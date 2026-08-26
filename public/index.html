@@ -3773,7 +3773,7 @@ function applyLanguage() {
 }
 
 function daysUntilNextBirthday(dateStr) {
-  if (!dateStr) return Infinity;
+  if (!dateStr || !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(dateStr)) return Infinity;
   const today = new Date();
   today.setHours(0,0,0,0);
   const [m, d] = dateStr.split("-").map(Number);
