@@ -448,7 +448,7 @@
     transition: background 0.15s;
   }
   .dashboard-text-overlay.has-content .dashboard-text-scrim {
-    background: linear-gradient(105deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.22) 55%, rgba(0,0,0,0) 100%);
+    background: linear-gradient(105deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
   }
   .dashboard-tagline {
     font-family: 'Manrope', sans-serif;
@@ -937,6 +937,61 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
+  }
+  .business-source-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .business-source-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .business-source-body {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .business-source-donut-wrap {
+    flex-shrink: 0;
+    width: 110px;
+    height: 110px;
+  }
+  .business-source-legend {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+  }
+  .business-source-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .business-source-legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .business-source-legend-name {
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .business-source-legend-pct {
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
   }
   .stat-number-row {
     display: flex;
@@ -1796,6 +1851,14 @@
           <div class="stat-number-row" id="quickStatsBirthdaySoon"></div>
         </div>
         <span class="opp-stat-label" id="quickStatsBirthdayLabel"></span>
+      </div>
+    </div>
+
+    <div class="business-source-card" id="businessSourceCard" style="display:none;">
+      <p class="business-source-title" id="businessSourceTitle">生意来源占比</p>
+      <div class="business-source-body">
+        <div class="business-source-donut-wrap" id="businessSourceDonutWrap"></div>
+        <div class="business-source-legend" id="businessSourceLegend"></div>
       </div>
     </div>
 
@@ -3037,6 +3100,12 @@ const I18N = {
     enterAppLabel: "进入",
     backToHomeLabel: "返回首页",
     quickStatsBirthdayLabel: "未来 7 天内生日",
+    businessSourceTitle: "生意来源占比",
+    businessSourceNutrilite: "Nutrilite",
+    businessSourceArtistry: "Artistry",
+    businessSourceHomeTech: "Home Tech",
+    businessSourceOther: "其他",
+    businessSourceTotalLabel: "总消费",
     customerTotalGoalPrompt: "设定累计顾客消费目标 (RM,留空表示不设定目标):",
     birthdaysStatsMonthLabel: "本月生日人数",
     birthdaysStatsTotalLabel: "累计生日人数",
@@ -3343,6 +3412,12 @@ const I18N = {
     enterAppLabel: "Enter",
     backToHomeLabel: "Back to Home",
     quickStatsBirthdayLabel: "Birthdays in next 7 days",
+    businessSourceTitle: "Business Source Breakdown",
+    businessSourceNutrilite: "Nutrilite",
+    businessSourceArtistry: "Artistry",
+    businessSourceHomeTech: "Home Tech",
+    businessSourceOther: "Other",
+    businessSourceTotalLabel: "Total spend",
     customerTotalGoalPrompt: "Set total customer spending goal (RM, leave blank for no goal):",
     birthdaysStatsMonthLabel: "Birthdays this month",
     birthdaysStatsTotalLabel: "Total birthdays",
@@ -3908,6 +3983,29 @@ function hasProductKeyword(purchases, regex) {
 }
 const NUTRITION_KEYWORD_REGEX = /营养|nutrilite/i;
 const ARTISTRY_KEYWORD_REGEX = /artistry/i;
+const ESPRING_KEYWORD_REGEX = /espring/i;
+
+function computeBusinessSourceBreakdown(customers) {
+  let nutrilite = 0, artistry = 0, homeTech = 0, other = 0, total = 0;
+  customers.forEach(c => {
+    (Array.isArray(c.purchases) ? c.purchases : []).forEach(p => {
+      const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
+      if (isNaN(n) || n <= 0) return;
+      total += n;
+      const product = p.product || "";
+      if (NUTRITION_KEYWORD_REGEX.test(product)) {
+        nutrilite += n;
+      } else if (ARTISTRY_KEYWORD_REGEX.test(product)) {
+        artistry += n;
+      } else if (ESPRING_KEYWORD_REGEX.test(product) || ATMOSPHERE_KEYWORD_REGEX.test(product)) {
+        homeTech += n;
+      } else {
+        other += n;
+      }
+    });
+  });
+  return { nutrilite, artistry, homeTech, other, total };
+}
 
 const contentEl = document.getElementById("content");
 const footerEl = document.getElementById("footerCount");
@@ -4432,6 +4530,64 @@ function renderQuickStats() {
   const soonCount = peopleWithBirthdays.filter(p => daysUntilNextBirthday(p.date) <= soonThreshold).length;
   setStatNumber("quickStatsBirthdaySoon", soonCount, null);
   document.getElementById("quickStatsBirthdayLabel").textContent = s.quickStatsBirthdayLabel;
+
+  renderBusinessSourceCard();
+}
+
+function renderBusinessSourceCard() {
+  const card = document.getElementById("businessSourceCard");
+  if (!card) return;
+  const s = t();
+  const { nutrilite, artistry, homeTech, other, total } = computeBusinessSourceBreakdown(customers);
+
+  if (total <= 0) {
+    card.style.display = "none";
+    return;
+  }
+  card.style.display = "block";
+  document.getElementById("businessSourceTitle").textContent = s.businessSourceTitle;
+
+  const segments = [
+    { name: s.businessSourceNutrilite, value: nutrilite, color: "#FF7A3D" },
+    { name: s.businessSourceArtistry, value: artistry, color: "#8B5CF6" },
+    { name: s.businessSourceHomeTech, value: homeTech, color: "#2F8F84" },
+    { name: s.businessSourceOther, value: other, color: "#5B5FC7" },
+  ].filter(seg => seg.value > 0);
+
+  const circumference = 2 * Math.PI * 15.9;
+  let offsetAccum = 0;
+  const circles = segments.map(seg => {
+    const pct = seg.value / total;
+    const dash = pct * circumference;
+    const gap = circumference - dash;
+    const circle = `<circle cx="18" cy="18" r="15.9" fill="none" stroke="${seg.color}" stroke-width="4" stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${(-offsetAccum).toFixed(2)}" stroke-linecap="butt"/>`;
+    offsetAccum += dash;
+    return circle;
+  }).join("");
+
+  const totalFmt = fmtMoney(total);
+  document.getElementById("businessSourceDonutWrap").innerHTML = `
+    <svg width="110" height="110" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--input-border)" stroke-width="4"/>
+      ${circles}
+      <text x="18" y="17.5" text-anchor="middle" fill="var(--text)" font-size="5" font-weight="700" font-family="Manrope">${escapeHtml(totalFmt)}</text>
+      <text x="18" y="22.5" text-anchor="middle" fill="var(--muted)" font-size="2.8" font-family="Manrope">${escapeHtml(s.businessSourceTotalLabel)}</text>
+    </svg>
+  `;
+
+  document.getElementById("businessSourceLegend").innerHTML = segments.map(seg => {
+    const pct = Math.round((seg.value / total) * 100);
+    return `<div class="business-source-legend-row">
+      <span class="business-source-legend-swatch" style="background:${seg.color}"></span>
+      <span class="business-source-legend-name">${escapeHtml(seg.name)}</span>
+      <span class="business-source-legend-pct" style="color:${seg.color}">${pct}%</span>
+    </div>`;
+  }).join("");
+}
+
+function fmtMoney(n) {
+  if (n >= 1000) return "RM" + (n / 1000).toFixed(1) + "k";
+  return "RM" + Math.round(n);
 }
 
 function enterMainApp() {
