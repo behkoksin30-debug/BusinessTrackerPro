@@ -949,8 +949,43 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--muted);
-    margin: 0 0 14px;
+    margin: 0;
   }
+  .business-source-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .business-source-date-range {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .business-source-date-range input[type="date"] {
+    padding: 4px 6px;
+    font-size: 11px;
+    border-radius: 8px;
+    width: auto;
+    max-width: 118px;
+  }
+  .business-source-date-sep {
+    font-size: 11px;
+    color: var(--muted-light);
+  }
+  .business-source-date-reset {
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .business-source-date-reset:hover { color: var(--accent); border-color: var(--accent); }
   .business-source-body {
     display: flex;
     align-items: center;
@@ -960,6 +995,19 @@
     flex-shrink: 0;
     width: 110px;
     height: 110px;
+  }
+  .business-source-empty {
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted-light);
+    border: 1px dashed var(--input-border);
+    border-radius: 50%;
+    padding: 8px;
   }
   .business-source-legend {
     flex: 1;
@@ -1855,7 +1903,15 @@
     </div>
 
     <div class="business-source-card" id="businessSourceCard" style="display:none;">
-      <p class="business-source-title" id="businessSourceTitle">生意来源占比</p>
+      <div class="business-source-header">
+        <p class="business-source-title" id="businessSourceTitle">生意来源占比</p>
+        <div class="business-source-date-range">
+          <input type="date" id="businessSourceDateFrom" />
+          <span class="business-source-date-sep" id="businessSourceDateSep">-</span>
+          <input type="date" id="businessSourceDateTo" />
+          <button type="button" class="business-source-date-reset" id="businessSourceDateReset"><span id="businessSourceDateResetLabel">全部</span></button>
+        </div>
+      </div>
       <div class="business-source-body">
         <div class="business-source-donut-wrap" id="businessSourceDonutWrap"></div>
         <div class="business-source-legend" id="businessSourceLegend"></div>
@@ -3106,6 +3162,8 @@ const I18N = {
     businessSourceHomeTech: "Home Tech",
     businessSourceOther: "其他",
     businessSourceTotalLabel: "总消费",
+    businessSourceDateResetLabel: "全部",
+    businessSourceNoDataInRange: "这段时间没有购买记录",
     customerTotalGoalPrompt: "设定累计顾客消费目标 (RM,留空表示不设定目标):",
     birthdaysStatsMonthLabel: "本月生日人数",
     birthdaysStatsTotalLabel: "累计生日人数",
@@ -3418,6 +3476,8 @@ const I18N = {
     businessSourceHomeTech: "Home Tech",
     businessSourceOther: "Other",
     businessSourceTotalLabel: "Total spend",
+    businessSourceDateResetLabel: "All",
+    businessSourceNoDataInRange: "No purchases in this period",
     customerTotalGoalPrompt: "Set total customer spending goal (RM, leave blank for no goal):",
     birthdaysStatsMonthLabel: "Birthdays this month",
     birthdaysStatsTotalLabel: "Total birthdays",
@@ -3539,7 +3599,7 @@ const I18N = {
 };
 
 const PREFS_KEY = "birthday-app-prefs";
-let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0, customerSortBy: "birthday", prospectSortBy: "oppdate", birthdaySortBy: "birthday", aboSortBy: "recent", partnerSortBy: "name" };
+let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0, customerSortBy: "birthday", prospectSortBy: "oppdate", birthdaySortBy: "birthday", aboSortBy: "recent", partnerSortBy: "name", businessSourceDateFrom: "", businessSourceDateTo: "" };
 try {
   const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
   prefs = { ...prefs, ...saved };
@@ -3985,12 +4045,17 @@ const NUTRITION_KEYWORD_REGEX = /营养|nutrilite/i;
 const ARTISTRY_KEYWORD_REGEX = /artistry/i;
 const ESPRING_KEYWORD_REGEX = /espring/i;
 
-function computeBusinessSourceBreakdown(customers) {
+function computeBusinessSourceBreakdown(customers, dateFrom, dateTo) {
   let nutrilite = 0, artistry = 0, homeTech = 0, other = 0, total = 0;
   customers.forEach(c => {
     (Array.isArray(c.purchases) ? c.purchases : []).forEach(p => {
       const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
       if (isNaN(n) || n <= 0) return;
+      if (dateFrom || dateTo) {
+        if (!p.date || !/^\d{4}-\d{2}-\d{2}$/.test(p.date)) return;
+        if (dateFrom && p.date < dateFrom) return;
+        if (dateTo && p.date > dateTo) return;
+      }
       total += n;
       const product = p.product || "";
       if (NUTRITION_KEYWORD_REGEX.test(product)) {
@@ -4538,14 +4603,28 @@ function renderBusinessSourceCard() {
   const card = document.getElementById("businessSourceCard");
   if (!card) return;
   const s = t();
-  const { nutrilite, artistry, homeTech, other, total } = computeBusinessSourceBreakdown(customers);
 
-  if (total <= 0) {
+  const overallTotal = computeBusinessSourceBreakdown(customers).total;
+  if (overallTotal <= 0) {
     card.style.display = "none";
     return;
   }
   card.style.display = "block";
   document.getElementById("businessSourceTitle").textContent = s.businessSourceTitle;
+  document.getElementById("businessSourceDateResetLabel").textContent = s.businessSourceDateResetLabel;
+
+  const fromInput = document.getElementById("businessSourceDateFrom");
+  const toInput = document.getElementById("businessSourceDateTo");
+  if (document.activeElement !== fromInput) fromInput.value = prefs.businessSourceDateFrom || "";
+  if (document.activeElement !== toInput) toInput.value = prefs.businessSourceDateTo || "";
+
+  const { nutrilite, artistry, homeTech, other, total } = computeBusinessSourceBreakdown(customers, prefs.businessSourceDateFrom || "", prefs.businessSourceDateTo || "");
+
+  if (total <= 0) {
+    document.getElementById("businessSourceDonutWrap").innerHTML = `<div class="business-source-empty">${escapeHtml(s.businessSourceNoDataInRange)}</div>`;
+    document.getElementById("businessSourceLegend").innerHTML = "";
+    return;
+  }
 
   const segments = [
     { name: s.businessSourceNutrilite, value: nutrilite, color: "#FF7A3D" },
@@ -4589,6 +4668,23 @@ function fmtMoney(n) {
   if (n >= 1000) return "RM" + (n / 1000).toFixed(1) + "k";
   return "RM" + Math.round(n);
 }
+
+document.getElementById("businessSourceDateFrom").addEventListener("change", (e) => {
+  prefs.businessSourceDateFrom = e.target.value;
+  savePrefs();
+  renderBusinessSourceCard();
+});
+document.getElementById("businessSourceDateTo").addEventListener("change", (e) => {
+  prefs.businessSourceDateTo = e.target.value;
+  savePrefs();
+  renderBusinessSourceCard();
+});
+document.getElementById("businessSourceDateReset").addEventListener("click", () => {
+  prefs.businessSourceDateFrom = "";
+  prefs.businessSourceDateTo = "";
+  savePrefs();
+  renderBusinessSourceCard();
+});
 
 function enterMainApp() {
   document.getElementById("page1View").style.display = "none";
