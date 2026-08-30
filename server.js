@@ -268,16 +268,28 @@ app.delete("/api/auth/downlines/:username", authMiddleware, (req, res) => {
    各种资料的读写函数(全部改成"每个账号自己一份")
    ============================================================ */
 
+function sanitizePurchaseItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((it) => ({
+      name: it && it.name ? String(it.name).trim() : "",
+      qty: it && it.qty ? String(it.qty).trim() : "",
+      price: it && it.price ? String(it.price).trim() : "",
+    }))
+    .filter((it) => it.name || it.qty || it.price);
+}
+
 function sanitizePurchases(purchases) {
   if (!Array.isArray(purchases)) return [];
   return purchases
     .map((p) => ({
       date: p && p.date ? String(p.date).trim() : "",
       product: p && p.product ? String(p.product).trim() : "",
+      items: sanitizePurchaseItems(p && p.items),
       amount: p && p.amount ? String(p.amount).trim() : "",
       note: p && p.note ? String(p.note).trim() : "",
     }))
-    .filter((p) => p.date || p.product || p.amount || p.note);
+    .filter((p) => p.date || p.product || p.amount || p.note || p.items.length > 0);
 }
 
 function sanitizeFollowUps(followUps) {
