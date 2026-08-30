@@ -4662,7 +4662,7 @@ function renderBusinessSourceCard() {
     { name: s.businessSourceArtistry, value: artistry, color: "#D4AF37" },
     { name: s.businessSourceHomeTech, value: homeTech, color: "#3B82F6" },
     { name: s.businessSourceOther, value: other, color: "#5B5FC7" },
-  ].filter(seg => seg.value > 0);
+  ].filter(seg => seg.value > 0 || seg.name === s.businessSourceOther);
 
   const circumference = 2 * Math.PI * 15.9;
   let offsetAccum = 0;
