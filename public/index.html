@@ -1560,56 +1560,6 @@
     box-shadow: none !important;
     padding-left: 6px;
   }
-  .purchase-items-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-  .purchase-item-row {
-    display: grid;
-    grid-template-columns: 1.4fr 0.7fr 1fr auto;
-    gap: 6px;
-    align-items: center;
-  }
-  .purchase-item-name-input,
-  .purchase-item-qty-input {
-    padding: 8px 10px;
-  }
-  .purchase-item-price-wrap {
-    min-width: 0;
-  }
-  .purchase-item-price-wrap input {
-    min-width: 0;
-  }
-  .purchase-item-remove {
-    background: none;
-    border: none;
-    color: var(--muted-light);
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-  .purchase-item-remove:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-  .add-item-btn {
-    width: 100%;
-    padding: 8px 0;
-    border-radius: 10px;
-    border: 1px dashed var(--input-border);
-    background: none;
-    color: var(--muted);
-    font-size: 12px;
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-  .add-item-btn:hover { color: var(--accent); border-color: var(--accent); }
   .add-purchase-btn {
     width: 100%;
     padding: 10px 0;
@@ -1742,9 +1692,6 @@
 
   @media (max-width: 480px) {
     .two-col { grid-template-columns: 1fr; }
-    .purchase-item-row { grid-template-columns: 1.2fr 0.6fr 0.9fr auto; gap: 4px; }
-    .purchase-item-name-input, .purchase-item-qty-input { padding: 8px 6px; font-size: 13px; }
-    .purchase-item-price-wrap .rm-prefix { padding: 0 3px 0 8px; font-size: 12px; }
   }
 </style>
 </head>
@@ -3302,10 +3249,6 @@ const I18N = {
     purchaseNoteLabel: "备注(选填)",
     productPlaceholder: "例如 Nutrilite 蛋白粉,可以写详细一点",
     amountPlaceholder: "150",
-    itemNamePlaceholder: "产品名称",
-    itemQtyPlaceholder: "数量",
-    itemPricePlaceholder: "单价",
-    addItemLabel: "添加产品",
     purchaseNotePlaceholder: "记录这次购买的情况…",
     addPurchaseLabel: "添加订单",
     removePurchaseLabel: "删除这笔记录",
@@ -3620,10 +3563,6 @@ const I18N = {
     purchaseNoteLabel: "Note (optional)",
     productPlaceholder: "e.g. Nutrilite Protein — feel free to add detail",
     amountPlaceholder: "150",
-    itemNamePlaceholder: "Product name",
-    itemQtyPlaceholder: "Qty",
-    itemPricePlaceholder: "Unit price",
-    addItemLabel: "Add product",
     purchaseNotePlaceholder: "Any notes about this purchase…",
     addPurchaseLabel: "Add purchase record",
     removePurchaseLabel: "Remove this record",
@@ -6561,9 +6500,8 @@ const purchasesList = document.getElementById("purchasesList");
 let selectedGender = "";
 let selectedCategory = "new";
 let editingId = null;
-let purchaseRows = []; // { key, date, items: [{key, name, qty, price}], amount, note }
+let purchaseRows = []; // { key, date, product, amount, note }
 let purchaseKeyCounter = 0;
-let purchaseItemKeyCounter = 0;
 
 function updateAvatarPreview() {
   const preview = document.getElementById("avatarPreview");
@@ -6637,49 +6575,14 @@ function setRejectionReasonValue(val) {
 function syncPurchaseRowsFromDOM() {
   purchaseRows.forEach(row => {
     const dateEl = document.getElementById(`p-date-${row.key}`);
+    const productEl = document.getElementById(`p-product-${row.key}`);
     const amountEl = document.getElementById(`p-amount-${row.key}`);
     const noteEl = document.getElementById(`p-note-${row.key}`);
     if (dateEl) row.date = dateEl.value;
+    if (productEl) row.product = productEl.value;
     if (amountEl) row.amount = amountEl.value;
     if (noteEl) row.note = noteEl.value;
-    row.items.forEach(item => {
-      const nameEl = document.getElementById(`pi-name-${row.key}-${item.key}`);
-      const qtyEl = document.getElementById(`pi-qty-${row.key}-${item.key}`);
-      const priceEl = document.getElementById(`pi-price-${row.key}-${item.key}`);
-      if (nameEl) item.name = nameEl.value;
-      if (qtyEl) item.qty = qtyEl.value;
-      if (priceEl) item.price = priceEl.value;
-    });
   });
-}
-
-function recomputePurchaseAmount(rowKey) {
-  const row = purchaseRows.find(r => r.key === rowKey);
-  if (!row) return;
-  const total = row.items.reduce((sum, item) => {
-    const qty = parseFloat(item.qty) || 0;
-    const price = parseFloat(String(item.price).replace(/[^\d.]/g, "")) || 0;
-    return sum + qty * price;
-  }, 0);
-  row.amount = total > 0 ? (Number.isInteger(total) ? String(total) : total.toFixed(2)) : row.amount;
-  const amountEl = document.getElementById(`p-amount-${rowKey}`);
-  if (amountEl) amountEl.value = row.amount;
-}
-
-function purchaseItemsToProductText(items) {
-  return items
-    .map(item => {
-      const name = (item.name || "").trim();
-      if (!name) return "";
-      const qty = item.qty ? String(item.qty).trim() : "";
-      const price = item.price ? String(item.price).trim() : "";
-      let line = name;
-      if (qty) line += ` x${qty}`;
-      if (price) line += ` - RM${price}`;
-      return line;
-    })
-    .filter(Boolean)
-    .join("\n");
 }
 
 function renderPurchaseRows() {
@@ -6695,35 +6598,21 @@ function renderPurchaseRows() {
       <button type="button" class="purchase-remove" onclick="removePurchaseRow(${row.key})" aria-label="${s.removePurchaseLabel}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
       </button>
-      <label class="field-label" style="margin-top:0;">${s.purchaseDateLabel}</label>
-      <input type="date" id="p-date-${row.key}" value="${escapeAttr(row.date)}" />
-
-      <label class="field-label">${s.purchaseProductLabel}</label>
-      <div class="purchase-items-list">
-        ${row.items.map(item => `
-          <div class="purchase-item-row" data-item-key="${item.key}">
-            <input type="text" id="pi-name-${row.key}-${item.key}" value="${escapeAttr(item.name)}" placeholder="${escapeAttr(s.itemNamePlaceholder)}" class="purchase-item-name-input" />
-            <input type="number" min="0" id="pi-qty-${row.key}-${item.key}" value="${escapeAttr(item.qty)}" placeholder="${escapeAttr(s.itemQtyPlaceholder)}" class="purchase-item-qty-input" oninput="recomputePurchaseAmount(${row.key})" />
-            <div class="amount-wrap purchase-item-price-wrap">
-              <span class="rm-prefix">RM</span>
-              <input type="text" inputmode="decimal" id="pi-price-${row.key}-${item.key}" value="${escapeAttr(item.price)}" placeholder="${escapeAttr(s.itemPricePlaceholder)}" oninput="recomputePurchaseAmount(${row.key})" />
-            </div>
-            <button type="button" class="purchase-item-remove" onclick="removePurchaseItem(${row.key}, ${item.key})" aria-label="${s.removePurchaseLabel}">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-            </button>
+      <div class="two-col">
+        <div>
+          <label class="field-label" style="margin-top:0;">${s.purchaseDateLabel}</label>
+          <input type="date" id="p-date-${row.key}" value="${escapeAttr(row.date)}" />
+        </div>
+        <div>
+          <label class="field-label" style="margin-top:0;">${s.purchaseAmountLabel}</label>
+          <div class="amount-wrap">
+            <span class="rm-prefix">RM</span>
+            <input type="text" inputmode="decimal" id="p-amount-${row.key}" value="${escapeAttr(row.amount)}" placeholder="${escapeAttr(s.amountPlaceholder)}" />
           </div>
-        `).join("")}
+        </div>
       </div>
-      <button type="button" class="add-item-btn" onclick="addPurchaseItem(${row.key})">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-        <span>${s.addItemLabel}</span>
-      </button>
-
-      <label class="field-label">${s.purchaseAmountLabel}</label>
-      <div class="amount-wrap">
-        <span class="rm-prefix">RM</span>
-        <input type="text" inputmode="decimal" id="p-amount-${row.key}" value="${escapeAttr(row.amount)}" placeholder="${escapeAttr(s.amountPlaceholder)}" />
-      </div>
+      <label class="field-label">${s.purchaseProductLabel}</label>
+      <textarea class="product-textarea" id="p-product-${row.key}" placeholder="${escapeAttr(s.productPlaceholder)}">${escapeHtml(row.product)}</textarea>
       <label class="field-label">${s.purchaseNoteLabel}</label>
       <textarea class="purchase-note-textarea" id="p-note-${row.key}" placeholder="${escapeAttr(s.purchaseNotePlaceholder)}">${escapeHtml(row.note)}</textarea>
     </div>
@@ -6734,41 +6623,14 @@ function addPurchaseRow(initial) {
   initial = initial || {};
   syncPurchaseRowsFromDOM();
   purchaseKeyCounter += 1;
-  let items = initial.items;
-  if (!Array.isArray(items) || items.length === 0) {
-    // 兼容旧资料:只有 product 文字栏位时,转成单一项目
-    items = initial.product ? [{ key: 0, name: initial.product, qty: "", price: initial.amount || "" }] : [];
-  }
-  items = items.map((it, idx) => {
-    purchaseItemKeyCounter += 1;
-    return { key: purchaseItemKeyCounter, name: it.name || "", qty: it.qty != null ? String(it.qty) : "", price: it.price != null ? String(it.price) : "" };
-  });
   purchaseRows.push({
     key: purchaseKeyCounter,
     date: initial.date || "",
-    items: items,
+    product: initial.product || "",
     amount: initial.amount || "",
     note: initial.note || "",
   });
   renderPurchaseRows();
-}
-
-function addPurchaseItem(rowKey) {
-  syncPurchaseRowsFromDOM();
-  const row = purchaseRows.find(r => r.key === rowKey);
-  if (!row) return;
-  purchaseItemKeyCounter += 1;
-  row.items.push({ key: purchaseItemKeyCounter, name: "", qty: "", price: "" });
-  renderPurchaseRows();
-}
-
-function removePurchaseItem(rowKey, itemKey) {
-  syncPurchaseRowsFromDOM();
-  const row = purchaseRows.find(r => r.key === rowKey);
-  if (!row) return;
-  row.items = row.items.filter(it => it.key !== itemKey);
-  renderPurchaseRows();
-  recomputePurchaseAmount(rowKey);
 }
 
 function removePurchaseRow(key) {
@@ -6818,16 +6680,7 @@ function openEditModal(id) {
   document.getElementById("lastMeetingInput").value = c.lastMeeting || "";
   purchaseRows = (Array.isArray(c.purchases) ? c.purchases : []).map(p => {
     purchaseKeyCounter += 1;
-    let items = Array.isArray(p.items) && p.items.length > 0
-      ? p.items.map(it => {
-          purchaseItemKeyCounter += 1;
-          return { key: purchaseItemKeyCounter, name: it.name || "", qty: it.qty != null ? String(it.qty) : "", price: it.price != null ? String(it.price) : "" };
-        })
-      : (p.product ? (() => {
-          purchaseItemKeyCounter += 1;
-          return [{ key: purchaseItemKeyCounter, name: p.product, qty: "", price: "" }];
-        })() : []);
-    return { key: purchaseKeyCounter, date: p.date || "", items, amount: p.amount || "", note: p.note || "" };
+    return { key: purchaseKeyCounter, date: p.date || "", product: p.product || "", amount: p.amount || "", note: p.note || "" };
   });
   renderPurchaseRows();
   setGender(c.gender || "");
@@ -6873,19 +6726,8 @@ async function saveCustomer() {
 
   syncPurchaseRowsFromDOM();
   const purchases = purchaseRows
-    .map(r => {
-      const cleanItems = r.items
-        .map(it => ({ name: it.name.trim(), qty: it.qty.trim(), price: it.price.trim() }))
-        .filter(it => it.name || it.qty || it.price);
-      return {
-        date: r.date.trim(),
-        items: cleanItems,
-        product: purchaseItemsToProductText(cleanItems),
-        amount: r.amount.trim(),
-        note: r.note.trim(),
-      };
-    })
-    .filter(p => p.date || p.product || p.amount || p.note || p.items.length > 0);
+    .map(r => ({ date: r.date.trim(), product: r.product.trim(), amount: r.amount.trim(), note: r.note.trim() }))
+    .filter(p => p.date || p.product || p.amount || p.note);
 
   const payload = { name, date, phone, gender: selectedGender, purchases, notes, category: selectedCategory, lastMeeting, sawDemo: selectedSawDemo, preference };
 
