@@ -4047,17 +4047,48 @@ const ESPRING_KEYWORD_REGEX = /espring/i;
 
 function computeBusinessSourceBreakdown(customers, dateFrom, dateTo) {
   let nutrilite = 0, artistry = 0, homeTech = 0, other = 0, total = 0;
+  const lineAmountRegex = /rm\s*([\d,]+(?:\.\d+)?)/i;
   customers.forEach(c => {
     (Array.isArray(c.purchases) ? c.purchases : []).forEach(p => {
-      const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
-      if (isNaN(n) || n <= 0) return;
       if (dateFrom || dateTo) {
         if (!p.date || !/^\d{4}-\d{2}-\d{2}$/.test(p.date)) return;
         if (dateFrom && p.date < dateFrom) return;
         if (dateTo && p.date > dateTo) return;
       }
-      total += n;
       const product = p.product || "";
+      const lines = product.split("\n").map(l => l.trim()).filter(Boolean);
+
+      // 先尝试逐行解析:每一行如果自己写了 RM 金额,就依这一行的关键字单独归类
+      let lineTotal = 0;
+      const lineCategorized = [];
+      lines.forEach(line => {
+        const m = line.match(lineAmountRegex);
+        if (!m) return;
+        const amt = parseFloat(m[1].replace(/,/g, ""));
+        if (isNaN(amt) || amt <= 0) return;
+        let cat = "other";
+        if (NUTRITION_KEYWORD_REGEX.test(line)) cat = "nutrilite";
+        else if (ARTISTRY_KEYWORD_REGEX.test(line)) cat = "artistry";
+        else if (ESPRING_KEYWORD_REGEX.test(line) || ATMOSPHERE_KEYWORD_REGEX.test(line)) cat = "homeTech";
+        lineCategorized.push({ cat, amt });
+        lineTotal += amt;
+      });
+
+      if (lineCategorized.length > 0) {
+        lineCategorized.forEach(({ cat, amt }) => {
+          if (cat === "nutrilite") nutrilite += amt;
+          else if (cat === "artistry") artistry += amt;
+          else if (cat === "homeTech") homeTech += amt;
+          else other += amt;
+        });
+        total += lineTotal;
+        return;
+      }
+
+      // 没有任何一行写得出金额,退回用整笔订单金额+整体关键字判断
+      const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
+      if (isNaN(n) || n <= 0) return;
+      total += n;
       if (NUTRITION_KEYWORD_REGEX.test(product)) {
         nutrilite += n;
       } else if (ARTISTRY_KEYWORD_REGEX.test(product)) {
