@@ -1095,7 +1095,8 @@
   }
   .opp-stat-month-select {
     font-size: 10px;
-    color: var(--muted);
+    font-weight: 700;
+    color: var(--accent);
     background: none;
     border: none;
     padding: 0;
@@ -1107,6 +1108,10 @@
   }
   .opp-stat-month-select:focus {
     box-shadow: none;
+  }
+  .opp-stat-month-select::-webkit-calendar-picker-indicator {
+    filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(346deg) brightness(101%) contrast(101%);
+    opacity: 0.85;
   }
   .opp-stat-chip-editable {
     position: relative;
@@ -1980,6 +1985,7 @@
           <option value="atmosphere_only" id="customerSortAtmosphereOpt">Atmosphere User</option>
           <option value="nutrition_only" id="customerSortNutritionOpt">Nutrilite User</option>
           <option value="artistry_only" id="customerSortArtistryOpt">Artistry User</option>
+          <option value="month_purchase_only" id="customerSortMonthPurchaseOpt">本月购买顾客</option>
         </select>
       </div>
       <div class="opp-stats-bar" id="customerStatsBar" style="display:none;">
@@ -3015,6 +3021,7 @@ const I18N = {
     sortByAtmosphereOnly: "Atmosphere User",
     sortByNutritionOnly: "Nutrilite User",
     sortByArtistryOnly: "Artistry User",
+    sortByMonthPurchase: (monthLabel) => `${monthLabel}购买顾客`,
     deleteFailed: "删除失败,请重试",
     errorName: "请输入顾客姓名",
     errorDate: "请选择生日日期",
@@ -3323,6 +3330,7 @@ const I18N = {
     sortByAtmosphereOnly: "Atmosphere User",
     sortByNutritionOnly: "Nutrilite User",
     sortByArtistryOnly: "Artistry User",
+    sortByMonthPurchase: (monthLabel) => `Purchased in ${monthLabel}`,
     deleteFailed: "Failed to delete. Please try again.",
     errorName: "Please enter a customer name",
     errorDate: "Please select a birthday",
@@ -3706,6 +3714,7 @@ function applyLanguage() {
   document.getElementById("customerSortAtmosphereOpt").textContent = s.sortByAtmosphereOnly;
   document.getElementById("customerSortNutritionOpt").textContent = s.sortByNutritionOnly;
   document.getElementById("customerSortArtistryOpt").textContent = s.sortByArtistryOnly;
+  updateMonthPurchaseOptLabel();
   document.getElementById("prospectSearchInput").placeholder = s.searchPlaceholder;
   document.getElementById("prospectSortOppdateOpt").textContent = s.sortByOppDate;
   document.getElementById("prospectSortNameOpt").textContent = s.sortByName;
@@ -4356,6 +4365,17 @@ function escapeAttr(str) {
     .replace(/>/g, "&gt;");
 }
 
+function updateMonthPurchaseOptLabel() {
+  const opt = document.getElementById("customerSortMonthPurchaseOpt");
+  if (!opt) return;
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const monthKey = prefs.customerStatsSelectedMonth || currentMonthKey;
+  const [y, m] = monthKey.split("-");
+  const monthLabel = prefs.lang === "zh" ? `${y}年${parseInt(m, 10)}月` : `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][parseInt(m,10)-1]} ${y}`;
+  opt.textContent = t().sortByMonthPurchase(monthLabel);
+}
+
 function render() {
   const s = t();
   renderQuickStats();
@@ -4421,6 +4441,11 @@ function render() {
     filtered = filtered.filter(c => hasProductKeyword(c.purchases, NUTRITION_KEYWORD_REGEX));
   } else if (sortBy === "artistry_only") {
     filtered = filtered.filter(c => hasProductKeyword(c.purchases, ARTISTRY_KEYWORD_REGEX));
+  } else if (sortBy === "month_purchase_only") {
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthKey = prefs.customerStatsSelectedMonth || currentMonthKey;
+    filtered = filtered.filter(c => Array.isArray(c.purchases) && c.purchases.some(p => p.date && p.date.startsWith(monthKey)));
   }
 
   if (filtered.length === 0) {
@@ -4576,6 +4601,7 @@ document.getElementById("customerStatsMonthSelect").addEventListener("click", (e
 document.getElementById("customerStatsMonthSelect").addEventListener("change", (e) => {
   prefs.customerStatsSelectedMonth = e.target.value;
   savePrefs();
+  updateMonthPurchaseOptLabel();
   render();
 });
 document.getElementById("customerCountCategorySelect").addEventListener("click", (e) => e.stopPropagation());
