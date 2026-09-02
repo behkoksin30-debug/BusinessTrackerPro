@@ -1093,6 +1093,21 @@
   .opp-stat-category-select:focus {
     box-shadow: none;
   }
+  .opp-stat-month-select {
+    font-size: 10px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 2px;
+    width: auto;
+    max-width: 100%;
+    cursor: pointer;
+    outline: none;
+  }
+  .opp-stat-month-select:focus {
+    box-shadow: none;
+  }
   .opp-stat-chip-editable {
     position: relative;
     cursor: pointer;
@@ -1982,6 +1997,7 @@
           <span class="opp-stat-icon-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
           <div class="stat-number-row" id="customerStatsMonthNum"></div>
           <span class="opp-stat-label" id="customerStatsMonthLabel"></span>
+          <input type="month" class="opp-stat-month-select" id="customerStatsMonthSelect" onclick="event.stopPropagation()" />
           <div class="opp-stat-indicator" id="customerStatsMonthIndicator"></div>
         </div>
         <div class="opp-stat-chip opp-stat-chip-editable" onclick="editCustomerGoal('total')">
@@ -3171,7 +3187,7 @@ const I18N = {
     abosStatsMonthLabel: "本月新增跟进对象",
     abosStatsTotalLabel: "累计跟进对象",
     abosGoalPrompt: "设定累计跟进对象目标(留空表示不设定目标):",
-    customerStatsMonthLabel: "本月顾客消费 (RM)",
+    customerStatsMonthLabel: "顾客消费 (RM)",
     customerStatsCountLabel: "顾客总数量",
     customerCountCatVipLabel: "VIP总数",
     customerCountCatVvipLabel: "VVIP总数",
@@ -3485,7 +3501,7 @@ const I18N = {
     abosStatsMonthLabel: "New follow-ups this month",
     abosStatsTotalLabel: "Total follow-ups",
     abosGoalPrompt: "Set your total follow-ups goal (leave blank for no goal):",
-    customerStatsMonthLabel: "Customer spending this month (RM)",
+    customerStatsMonthLabel: "Customer spending (RM)",
     customerStatsCountLabel: "Total customers",
     customerCountCatVipLabel: "VIP Total",
     customerCountCatVvipLabel: "VVIP Total",
@@ -3599,7 +3615,7 @@ const I18N = {
 };
 
 const PREFS_KEY = "birthday-app-prefs";
-let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0, customerSortBy: "birthday", prospectSortBy: "oppdate", birthdaySortBy: "birthday", aboSortBy: "recent", partnerSortBy: "name", businessSourceDateFrom: "", businessSourceDateTo: "" };
+let prefs = { color: "#C4635A", dark: false, lang: "zh", oppMonthGoal: 0, oppGoal: 0, customerCountGoal: 0, customerCountGoalVip: 0, customerCountGoalVvip: 0, customerCountFilter: "", customerMonthGoal: 0, customerTotalGoal: 0, abosGoal: 0, birthdaysGoal: 0, partnersGoal: 0, customerSortBy: "birthday", prospectSortBy: "oppdate", birthdaySortBy: "birthday", aboSortBy: "recent", partnerSortBy: "name", businessSourceDateFrom: "", businessSourceDateTo: "", customerStatsSelectedMonth: "" };
 try {
   const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
   prefs = { ...prefs, ...saved };
@@ -4352,7 +4368,12 @@ function render() {
   const withAmount = allPurchases.filter(p => p.amount);
   if (customers.length > 0 || withAmount.length > 0 || prefs.customerCountGoal > 0 || prefs.customerMonthGoal > 0 || prefs.customerTotalGoal > 0) {
     const now = new Date();
-    const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const selectedMonthKey = prefs.customerStatsSelectedMonth || currentMonthKey;
+    const monthSelectEl = document.getElementById("customerStatsMonthSelect");
+    if (monthSelectEl && document.activeElement !== monthSelectEl) {
+      monthSelectEl.value = selectedMonthKey;
+    }
     const sumAmount = (list) => list.reduce((sum, p) => {
       const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
       return sum + (isNaN(n) ? 0 : n);
@@ -4362,7 +4383,7 @@ function render() {
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       return parts.join(".");
     };
-    const thisMonthTotal = sumAmount(withAmount.filter(p => p.date && p.date.startsWith(thisMonthKey)));
+    const thisMonthTotal = sumAmount(withAmount.filter(p => p.date && p.date.startsWith(selectedMonthKey)));
     const grandTotal = sumAmount(withAmount);
     customerStatsBar.style.display = "flex";
     const countCategory = prefs.customerCountFilter || "";
@@ -4548,6 +4569,12 @@ async function loadCustomers() {
 document.getElementById("customerSearchInput").addEventListener("input", render);
 document.getElementById("customerSortSelect").addEventListener("change", (e) => {
   prefs.customerSortBy = e.target.value;
+  savePrefs();
+  render();
+});
+document.getElementById("customerStatsMonthSelect").addEventListener("click", (e) => e.stopPropagation());
+document.getElementById("customerStatsMonthSelect").addEventListener("change", (e) => {
+  prefs.customerStatsSelectedMonth = e.target.value;
   savePrefs();
   render();
 });
