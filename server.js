@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 
-app.use(express.json({ limit: "6mb" }));
+app.use(express.json({ limit: "25mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 /* ============================================================
@@ -628,6 +628,7 @@ function readDashboard(username) {
     const parsed = JSON.parse(raw);
     return {
       poster: parsed.poster || "",
+      posterType: parsed.posterType === "video" ? "video" : "image",
       tagline: parsed.tagline || "",
       announcement: parsed.announcement || "",
       posterX: clampNumber(parsed.posterX, 0, 1, 0.5),
@@ -638,7 +639,7 @@ function readDashboard(username) {
       customIcon: (parsed.customIcon || "").toString(),
     };
   } catch (e) {
-    return { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
+    return { poster: "", posterType: "image", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
   }
 }
 
@@ -646,6 +647,7 @@ function writeDashboard(username, data) {
   fs.mkdirSync(userDataDir(username), { recursive: true });
   const safe = {
     poster: (data.poster || "").toString(),
+    posterType: data.posterType === "video" ? "video" : "image",
     tagline: (data.tagline || "").toString().trim(),
     announcement: (data.announcement || "").toString().trim(),
     posterX: clampNumber(data.posterX, 0, 1, 0.5),
