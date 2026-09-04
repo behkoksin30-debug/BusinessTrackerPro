@@ -4070,6 +4070,22 @@ const NUTRITION_KEYWORD_REGEX = /营养|nutrilite/i;
 const ARTISTRY_KEYWORD_REGEX = /artistry/i;
 const ESPRING_KEYWORD_REGEX = /espring/i;
 
+// 统一的金额解析:如果打成「1699,5」这种逗号当小数点的写法(逗号后面只有1~2位数字、
+// 且没有句点),会自动当成小数点处理成 1699.5;否则逗号一律当千分位符号去掉,比如「1,699」= 1699
+function parsePurchaseAmount(raw) {
+  let str = String(raw == null ? "" : raw).trim();
+  if (!str) return 0;
+  const commaMatches = str.match(/,/g) || [];
+  const looksLikeCommaDecimal = commaMatches.length === 1 && !str.includes(".") && /,\d{1,2}$/.test(str);
+  if (looksLikeCommaDecimal) {
+    str = str.replace(",", ".");
+  } else {
+    str = str.replace(/,/g, "");
+  }
+  const n = parseFloat(str.replace(/[^\d.\-]/g, ""));
+  return isNaN(n) ? 0 : n;
+}
+
 function computeBusinessSourceBreakdown(customers, dateFrom, dateTo) {
   let nutrilite = 0, artistry = 0, homeTech = 0, other = 0, total = 0;
   const lineAmountRegex = /rm\s*([\d,]+(?:\.\d+)?)/i;
@@ -4089,7 +4105,7 @@ function computeBusinessSourceBreakdown(customers, dateFrom, dateTo) {
       lines.forEach(line => {
         const m = line.match(lineAmountRegex);
         if (!m) return;
-        const amt = parseFloat(m[1].replace(/,/g, ""));
+        const amt = parsePurchaseAmount(m[1]);
         if (isNaN(amt) || amt <= 0) return;
         let cat = "other";
         if (NUTRITION_KEYWORD_REGEX.test(line)) cat = "nutrilite";
@@ -4111,7 +4127,7 @@ function computeBusinessSourceBreakdown(customers, dateFrom, dateTo) {
       }
 
       // 没有任何一行写得出金额,退回用整笔订单金额+整体关键字判断
-      const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
+      const n = parsePurchaseAmount(p.amount);
       if (isNaN(n) || n <= 0) return;
       total += n;
       if (NUTRITION_KEYWORD_REGEX.test(product)) {
@@ -4395,7 +4411,7 @@ function render() {
       monthSelectEl.value = selectedMonthKey;
     }
     const sumAmount = (list) => list.reduce((sum, p) => {
-      const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
+      const n = parsePurchaseAmount(p.amount);
       return sum + (isNaN(n) ? 0 : n);
     }, 0);
     const fmt = (n) => {
@@ -4475,7 +4491,7 @@ function render() {
     let purchaseLine = "";
     if (purchases.length > 0) {
       const total = purchases.reduce((sum, p) => {
-        const n = parseFloat(String(p.amount).replace(/[^\d.]/g, ""));
+        const n = parsePurchaseAmount(p.amount);
         return sum + (isNaN(n) ? 0 : n);
       }, 0);
       const totalStr = Number.isInteger(total) ? String(total) : total.toFixed(2);
