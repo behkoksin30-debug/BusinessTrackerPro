@@ -348,6 +348,50 @@
   }
   .dashboard-poster-wrap.has-poster { border-style: solid; border-color: var(--card-border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .dashboard-poster-wrap img { position: absolute; display: block; }
+  .dashboard-poster-wrap video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+  }
+  .poster-mute-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+  }
+  .poster-mute-btn:hover { background: rgba(0,0,0,0.75); }
+  .poster-play-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.2s;
+  }
   .dashboard-poster-placeholder {
     display: flex;
     flex-direction: column;
@@ -1857,8 +1901,15 @@
     </div>
 
     <div class="dashboard-section">
-      <div class="dashboard-poster-wrap" id="dashboardPosterWrap" onclick="triggerPosterUpload()">
+      <div class="dashboard-poster-wrap" id="dashboardPosterWrap" onclick="handlePosterWrapClick()">
         <img id="dashboardPosterImg" style="display:none;" alt="" />
+        <video id="dashboardPosterVideo" style="display:none;" playsinline muted loop></video>
+        <button type="button" class="poster-play-indicator" id="posterPlayIndicator" style="display:none;" tabindex="-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button type="button" class="poster-mute-btn" id="posterMuteBtn" style="display:none;" onclick="event.stopPropagation(); toggleVideoMute()" aria-label="静音切换" title="有声/无声">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="posterMuteIcon"><path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
         <div class="dashboard-poster-placeholder" id="dashboardPosterPlaceholder">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           <span id="dashboardPosterPlaceholderText">点击上传海报</span>
@@ -1885,7 +1936,7 @@
           </button>
         </div>
       </div>
-      <input type="file" accept="image/*" id="dashboardPosterInput" style="display:none;" />
+      <input type="file" accept="image/*,video/*" id="dashboardPosterInput" style="display:none;" />
     </div>
 
     <div class="opp-stats-bar" id="dashboardQuickStats">
@@ -3176,6 +3227,7 @@ const I18N = {
     dashboardTaglineFieldLabel: "标语",
     dashboardAnnouncementFieldLabel: "公告内容",
     dashboardPosterTooLarge: "图片太大,请选择小一点的图片",
+    dashboardVideoTooLarge: "视频档案太大,请选择 15MB 以内的视频",
     enterAppLabel: "进入",
     backToHomeLabel: "返回首页",
     quickStatsBirthdayLabel: "未来 7 天内生日",
@@ -3491,6 +3543,7 @@ const I18N = {
     dashboardTaglineFieldLabel: "Tagline",
     dashboardAnnouncementFieldLabel: "Announcement",
     dashboardPosterTooLarge: "Image too large, please pick a smaller one",
+    dashboardVideoTooLarge: "Video file too large, please pick one under 15MB",
     enterAppLabel: "Enter",
     backToHomeLabel: "Back to Home",
     quickStatsBirthdayLabel: "Birthdays in next 7 days",
@@ -7105,7 +7158,7 @@ whatsappBtn.addEventListener("click", () => {
 /* ============================================================
    Dashboard 展示区(海报 + 标语 + 公告)
    ============================================================ */
-let dashboardData = { poster: "", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
+let dashboardData = { poster: "", posterType: "image", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
 
 async function loadDashboard() {
   try {
@@ -7160,9 +7213,34 @@ function renderDashboard() {
   const s = t();
   const posterWrap = document.getElementById("dashboardPosterWrap");
   const img = document.getElementById("dashboardPosterImg");
+  const video = document.getElementById("dashboardPosterVideo");
+  const playIndicator = document.getElementById("posterPlayIndicator");
+  const muteBtn = document.getElementById("posterMuteBtn");
   const placeholder = document.getElementById("dashboardPosterPlaceholder");
   const actions = document.getElementById("dashboardPosterActions");
-  if (dashboardData.poster) {
+  const adjustBtn = document.getElementById("dashboardPosterAdjustBtn");
+  const isVideo = dashboardData.posterType === "video";
+
+  if (dashboardData.poster && isVideo) {
+    img.removeAttribute("src");
+    img.style.display = "none";
+    video.src = dashboardData.poster;
+    video.style.display = "block";
+    video.muted = true;
+    video.pause();
+    playIndicator.style.display = "flex";
+    muteBtn.style.display = "flex";
+    updateMuteIcon();
+    placeholder.style.display = "none";
+    actions.style.display = "flex";
+    adjustBtn.style.display = "none";
+    posterWrap.classList.add("has-poster");
+    fitDashboardOverlayText();
+  } else if (dashboardData.poster) {
+    video.removeAttribute("src");
+    video.style.display = "none";
+    playIndicator.style.display = "none";
+    muteBtn.style.display = "none";
     const applyNow = () => {
       applyPosterTransform(img, posterWrap, dashboardData.posterX, dashboardData.posterY, dashboardData.posterScale);
       fitDashboardOverlayText();
@@ -7173,16 +7251,20 @@ function renderDashboard() {
     if (img.complete && img.naturalWidth) applyNow();
     placeholder.style.display = "none";
     actions.style.display = "flex";
+    adjustBtn.style.display = "flex";
     posterWrap.classList.add("has-poster");
   } else {
     img.removeAttribute("src");
     img.style.display = "none";
+    video.removeAttribute("src");
+    video.style.display = "none";
+    playIndicator.style.display = "none";
+    muteBtn.style.display = "none";
     placeholder.style.display = "flex";
     actions.style.display = "none";
     posterWrap.classList.remove("has-poster");
   }
   document.getElementById("dashboardPosterPlaceholderText").textContent = s.dashboardPosterPlaceholder;
-  const adjustBtn = document.getElementById("dashboardPosterAdjustBtn");
   adjustBtn.title = s.dashboardPosterAdjustLabel;
   adjustBtn.setAttribute("aria-label", s.dashboardPosterAdjustLabel);
   const changeBtn = document.getElementById("dashboardPosterChangeBtn");
@@ -7246,6 +7328,45 @@ document.addEventListener("click", (e) => {
   }
 });
 
+function handlePosterWrapClick() {
+  if (dashboardData.poster && dashboardData.posterType === "video") {
+    toggleVideoPlayback();
+  } else {
+    triggerPosterUpload();
+  }
+}
+
+function toggleVideoPlayback() {
+  const video = document.getElementById("dashboardPosterVideo");
+  const playIndicator = document.getElementById("posterPlayIndicator");
+  if (!video) return;
+  if (video.paused) {
+    video.play();
+    playIndicator.style.opacity = "0";
+  } else {
+    video.pause();
+    playIndicator.style.opacity = "1";
+  }
+}
+
+function updateMuteIcon() {
+  const video = document.getElementById("dashboardPosterVideo");
+  const icon = document.getElementById("posterMuteIcon");
+  if (!video || !icon) return;
+  if (video.muted) {
+    icon.innerHTML = '<path d="M11 5 6 9H2v6h4l5 4z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+  } else {
+    icon.innerHTML = '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>';
+  }
+}
+
+function toggleVideoMute() {
+  const video = document.getElementById("dashboardPosterVideo");
+  if (!video) return;
+  video.muted = !video.muted;
+  updateMuteIcon();
+}
+
 function triggerPosterUpload() {
   if (blockIfViewingDownline()) return;
   document.getElementById("dashboardPosterInput").click();
@@ -7255,6 +7376,25 @@ document.getElementById("dashboardPosterInput").addEventListener("change", (e) =
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   const s = t();
+
+  if (file.type.startsWith("video/")) {
+    const maxVideoBytes = 15 * 1024 * 1024;
+    if (file.size > maxVideoBytes) {
+      alert(s.dashboardVideoTooLarge);
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      dashboardData.poster = ev.target.result;
+      dashboardData.posterType = "video";
+      saveDashboard();
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (ev) => {
     const img = new Image();
@@ -7275,6 +7415,7 @@ document.getElementById("dashboardPosterInput").addEventListener("change", (e) =
         return;
       }
       dashboardData.poster = dataUrl;
+      dashboardData.posterType = "image";
       dashboardData.posterX = 0.5;
       dashboardData.posterY = 0.5;
       dashboardData.posterScale = 1;
@@ -7290,6 +7431,7 @@ document.getElementById("dashboardPosterInput").addEventListener("change", (e) =
 function removeDashboardPoster() {
   if (blockIfViewingDownline()) return;
   dashboardData.poster = "";
+  dashboardData.posterType = "image";
   dashboardData.posterX = 0.5;
   dashboardData.posterY = 0.5;
   dashboardData.posterScale = 1;
