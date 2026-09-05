@@ -3227,7 +3227,7 @@ const I18N = {
     dashboardTaglineFieldLabel: "标语",
     dashboardAnnouncementFieldLabel: "公告内容",
     dashboardPosterTooLarge: "图片太大,请选择小一点的图片",
-    dashboardVideoTooLarge: "视频档案太大,请选择 15MB 以内的视频",
+    dashboardVideoTooLarge: "视频档案太大,请选择 40MB 以内的视频",
     enterAppLabel: "进入",
     backToHomeLabel: "返回首页",
     quickStatsBirthdayLabel: "未来 7 天内生日",
@@ -3543,7 +3543,7 @@ const I18N = {
     dashboardTaglineFieldLabel: "Tagline",
     dashboardAnnouncementFieldLabel: "Announcement",
     dashboardPosterTooLarge: "Image too large, please pick a smaller one",
-    dashboardVideoTooLarge: "Video file too large, please pick one under 15MB",
+    dashboardVideoTooLarge: "Video file too large, please pick one under 40MB",
     enterAppLabel: "Enter",
     backToHomeLabel: "Back to Home",
     quickStatsBirthdayLabel: "Birthdays in next 7 days",
@@ -7378,7 +7378,7 @@ document.getElementById("dashboardPosterInput").addEventListener("change", (e) =
   const s = t();
 
   if (file.type.startsWith("video/")) {
-    const maxVideoBytes = 15 * 1024 * 1024;
+    const maxVideoBytes = 40 * 1024 * 1024;
     if (file.size > maxVideoBytes) {
       alert(s.dashboardVideoTooLarge);
       e.target.value = "";
