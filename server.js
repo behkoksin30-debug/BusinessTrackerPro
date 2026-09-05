@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 
-app.use(express.json({ limit: "25mb" }));
+app.use(express.json({ limit: "60mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 /* ============================================================
