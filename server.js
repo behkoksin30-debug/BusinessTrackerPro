@@ -630,6 +630,73 @@ function clampNumber(val, min, max, fallback) {
   return Math.max(min, Math.min(max, n));
 }
 
+const PREFS_SORT_OPTIONS = {
+  customerSortBy: ["birthday", "name", "recent", "updated", "espring_only", "atmosphere_only", "nutrition_only", "artistry_only", "month_purchase_only"],
+  prospectSortBy: ["oppdate", "name", "recent", "updated"],
+  birthdaySortBy: ["birthday", "name", "recent", "updated"],
+  aboSortBy: ["recent", "name", "updated"],
+  partnerSortBy: ["name", "recent", "updated"],
+};
+
+function sanitizeUserPrefs(data) {
+  data = data && typeof data === "object" ? data : {};
+  const num = (v) => {
+    const n = parseInt(v, 10);
+    return !isNaN(n) && n >= 0 ? n : 0;
+  };
+  const sortVal = (key, def) => (PREFS_SORT_OPTIONS[key].includes(data[key]) ? data[key] : def);
+  return {
+    color: typeof data.color === "string" && /^#[0-9A-Fa-f]{6}$/.test(data.color) ? data.color : "#C4635A",
+    dark: !!data.dark,
+    lang: data.lang === "en" ? "en" : "zh",
+    oppMonthGoal: num(data.oppMonthGoal),
+    oppGoal: num(data.oppGoal),
+    customerCountGoal: num(data.customerCountGoal),
+    customerCountGoalVip: num(data.customerCountGoalVip),
+    customerCountGoalVvip: num(data.customerCountGoalVvip),
+    customerCountFilter: ["", "vip", "vvip"].includes(data.customerCountFilter) ? data.customerCountFilter : "",
+    customerMonthGoal: num(data.customerMonthGoal),
+    customerTotalGoal: num(data.customerTotalGoal),
+    abosGoal: num(data.abosGoal),
+    birthdaysGoal: num(data.birthdaysGoal),
+    partnersGoal: num(data.partnersGoal),
+    customerSortBy: sortVal("customerSortBy", "birthday"),
+    prospectSortBy: sortVal("prospectSortBy", "oppdate"),
+    birthdaySortBy: sortVal("birthdaySortBy", "birthday"),
+    aboSortBy: sortVal("aboSortBy", "recent"),
+    partnerSortBy: sortVal("partnerSortBy", "name"),
+    businessSourceDateFrom: isValidDateOrEmpty(data.businessSourceDateFrom) ? (data.businessSourceDateFrom || "") : "",
+    businessSourceDateTo: isValidDateOrEmpty(data.businessSourceDateTo) ? (data.businessSourceDateTo || "") : "",
+    customerStatsSelectedMonth: typeof data.customerStatsSelectedMonth === "string" && /^\d{4}-\d{2}$/.test(data.customerStatsSelectedMonth) ? data.customerStatsSelectedMonth : "",
+  };
+}
+
+function readUserPrefs(username) {
+  try {
+    const raw = fs.readFileSync(userFilePath(username, "prefs.json"), "utf-8");
+    return sanitizeUserPrefs(JSON.parse(raw));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeUserPrefs(username, data) {
+  fs.mkdirSync(userDataDir(username), { recursive: true });
+  const safe = sanitizeUserPrefs(data);
+  fs.writeFileSync(userFilePath(username, "prefs.json"), JSON.stringify(safe, null, 2), "utf-8");
+  return safe;
+}
+
+app.get("/api/prefs", authMiddleware, (req, res) => {
+  const saved = readUserPrefs(req.user.username);
+  res.json(saved || {});
+});
+
+app.put("/api/prefs", authMiddleware, (req, res) => {
+  const saved = writeUserPrefs(req.user.username, req.body);
+  res.json(saved);
+});
+
 function readDashboard(username) {
   try {
     const raw = fs.readFileSync(userFilePath(username, "dashboard.json"), "utf-8");
