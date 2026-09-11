@@ -2711,7 +2711,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
       </button>
       <div class="detail-header">
-        <div class="detail-avatar">🤝</div>
+        <div class="detail-avatar" id="partnerDetailAvatar">👤</div>
         <div>
           <div class="detail-name-row">
             <p class="detail-name" id="partnerDetailName"></p>
@@ -2752,7 +2752,19 @@
       <p class="modal-title" id="partnerModalTitle">添加 ABO</p>
       <p class="modal-subtitle" id="partnerModalSubtitle">记录正式合伙人的资料</p>
 
-      <input id="partnerNameInput" type="text" />
+      <div class="emoji-row">
+        <div class="avatar-preview" id="partnerAvatarPreview">👤</div>
+        <div class="name-input-wrap">
+          <input id="partnerNameInput" type="text" />
+        </div>
+        <div class="inline-gender-wrap">
+          <select id="partnerGenderSelect" aria-label="性别">
+            <option value="" id="partnerGenderUnsetOpt">不设置</option>
+            <option value="male" id="partnerGenderMaleOpt">男</option>
+            <option value="female" id="partnerGenderFemaleOpt">女</option>
+          </select>
+        </div>
+      </div>
 
       <label class="field-label" id="partnerPhoneFieldLabel">电话号码(选填)</label>
       <input id="partnerPhoneInput" type="tel" />
@@ -3932,6 +3944,9 @@ function applyLanguage() {
   document.getElementById("prospectGenderUnsetOpt").textContent = s.genderUnset;
   document.getElementById("prospectGenderMaleOpt").textContent = s.genderMale;
   document.getElementById("prospectGenderFemaleOpt").textContent = s.genderFemale;
+  document.getElementById("partnerGenderUnsetOpt").textContent = s.genderUnset;
+  document.getElementById("partnerGenderMaleOpt").textContent = s.genderMale;
+  document.getElementById("partnerGenderFemaleOpt").textContent = s.genderFemale;
   document.getElementById("prospectPhotoViewTitle").textContent = s.prospectPhotoViewTitle;
   document.getElementById("prospectPhotoCloseLabel").textContent = s.prospectPhotoCloseLabel;
   document.getElementById("prospectPhotoRemoveLabel").textContent = s.prospectPhotoRemoveLabel;
@@ -6474,7 +6489,7 @@ function renderPartners() {
     return `
       <div class="row" onclick="openPartnerDetailModal('${p.id}')">
         <div class="row-left">
-          <div class="avatar">🤝</div>
+          <div class="avatar">${genderAvatar(p)}</div>
           <div class="info">
             <div class="cust-name-row">
               <p class="cust-name">${escapeHtml(p.name)}</p>
@@ -6542,6 +6557,7 @@ function openPartnerDetailModal(id) {
   const s = t();
   detailPartnerId = id;
 
+  document.getElementById("partnerDetailAvatar").textContent = genderAvatar(p);
   document.getElementById("partnerDetailName").textContent = p.name;
   const type = p.partnerType || "new_start";
   const badge = document.getElementById("partnerDetailTypeBadge");
@@ -6618,6 +6634,21 @@ const partnerErrorMsg = document.getElementById("partnerErrorMsg");
 const deletePartnerBtn = document.getElementById("deletePartnerBtn");
 
 let editingPartnerId = null;
+let partnerSelectedGender = "";
+
+function updatePartnerAvatarPreview() {
+  const preview = document.getElementById("partnerAvatarPreview");
+  if (!preview) return;
+  if (partnerSelectedGender === "male") preview.textContent = "👨";
+  else if (partnerSelectedGender === "female") preview.textContent = "👩";
+  else preview.textContent = "👤";
+}
+
+function setPartnerGender(gender) {
+  partnerSelectedGender = gender;
+  document.getElementById("partnerGenderSelect").value = gender;
+  updatePartnerAvatarPreview();
+}
 
 function resetPartnerForm() {
   partnerNameInput.value = "";
@@ -6627,8 +6658,13 @@ function resetPartnerForm() {
   setMonthDayValue("partnerDateMonthSelect", "partnerDateDaySelect", "");
   partnerPinInput.value = "";
   partnerNotesInput.value = "";
+  setPartnerGender("");
   partnerErrorMsg.style.display = "none";
 }
+
+document.getElementById("partnerGenderSelect").addEventListener("change", (e) => {
+  setPartnerGender(e.target.value);
+});
 
 function openAddPartnerModal() {
   const s = t();
@@ -6653,6 +6689,7 @@ function openEditPartnerModal(id) {
   setMonthDayValue("partnerDateMonthSelect", "partnerDateDaySelect", p.date || "");
   partnerPinInput.value = p.pin || "";
   partnerNotesInput.value = p.notes || "";
+  setPartnerGender(p.gender || "");
   partnerModalTitle.textContent = s.modalEditPartnerTitle;
   deletePartnerBtn.style.display = "block";
   partnerOverlay.classList.add("open");
@@ -6692,7 +6729,7 @@ async function savePartner() {
   if (phone && !/^[+\d][\d\s\-()]{4,}$/.test(phone)) { showPartnerError(s.errorPhone); return; }
   const date = dateMonth && dateDay ? `${dateMonth}-${dateDay}` : "";
 
-  const payload = { name, phone, ada, date, pin, partnerType, notes };
+  const payload = { name, gender: partnerSelectedGender, phone, ada, date, pin, partnerType, notes };
 
   try {
     let res, saved;
