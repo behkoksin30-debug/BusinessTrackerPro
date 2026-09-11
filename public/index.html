@@ -862,8 +862,6 @@
     flex-shrink: 0;
     overflow: hidden;
   }
-  .avatar-preview-clickable { cursor: pointer; }
-  .avatar-preview-clickable:hover { border-color: var(--accent); }
   .avatar-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .prospect-photo-view-img {
     width: 100%;
@@ -874,6 +872,35 @@
     object-fit: contain;
     background: var(--input-bg);
   }
+  .prospect-photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .prospect-photo-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--input-border);
+  }
+  .prospect-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prospect-photo-add-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1px dashed var(--input-border);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+  .prospect-photo-add-btn:hover { color: var(--accent); border-color: var(--accent); }
   .gender-toggle {
     display: flex;
     gap: 6px;
@@ -2392,8 +2419,7 @@
       <p class="modal-subtitle" id="prospectModalSubtitle">记录讲 OPP 后的联系人资料</p>
 
       <div class="emoji-row">
-        <div class="avatar-preview avatar-preview-clickable" id="prospectAvatarPreview" onclick="handleProspectAvatarClick()">👤</div>
-        <input type="file" accept="image/*" id="prospectPhotoInput" style="display:none;" />
+        <div class="avatar-preview" id="prospectAvatarPreview">👤</div>
         <div class="name-input-wrap">
           <input id="prospectNameInput" type="text" />
         </div>
@@ -2408,6 +2434,10 @@
 
       <label class="field-label" id="backgroundFieldLabel">背景</label>
       <textarea id="backgroundInput"></textarea>
+
+      <label class="field-label" id="backgroundPhotosLabel">背景照片</label>
+      <div class="prospect-photo-gallery" id="prospectPhotoGallery"></div>
+      <input type="file" accept="image/*" id="prospectPhotoInput" style="display:none;" multiple />
 
       <div class="three-col-tight">
         <div>
@@ -2775,8 +2805,8 @@
       <p class="modal-title" id="prospectPhotoViewTitle">照片</p>
       <img id="prospectPhotoViewImg" src="" alt="" class="prospect-photo-view-img" />
       <div class="modal-actions">
-        <button type="button" id="prospectPhotoReplaceBtn" onclick="triggerProspectPhotoUpload()"><span id="prospectPhotoReplaceLabel">更换</span></button>
-        <button class="primary-btn" type="button" id="prospectPhotoRemoveBtn" onclick="removeProspectPhoto()"><span id="prospectPhotoRemoveLabel">删除照片</span></button>
+        <button type="button" onclick="closeProspectPhotoView()"><span id="prospectPhotoCloseLabel">关闭</span></button>
+        <button class="primary-btn" type="button" onclick="removeProspectPhoto()"><span id="prospectPhotoRemoveLabel">删除照片</span></button>
       </div>
     </div>
   </div>
@@ -3342,8 +3372,9 @@ const I18N = {
     iconResetBtn: "重置",
     iconTooLargeError: "图片太大,请选择小一点的图片",
     prospectPhotoViewTitle: "照片",
-    prospectPhotoReplaceLabel: "更换",
+    prospectPhotoCloseLabel: "关闭",
     prospectPhotoRemoveLabel: "删除照片",
+    backgroundPhotosLabel: "背景照片",
     categoryFieldLabel: "顾客分类",
     categoryNew: "新顾客",
     categoryRegular: "一般",
@@ -3661,8 +3692,9 @@ const I18N = {
     iconResetBtn: "Reset",
     iconTooLargeError: "Image too large, please pick a smaller one",
     prospectPhotoViewTitle: "Photo",
-    prospectPhotoReplaceLabel: "Replace",
+    prospectPhotoCloseLabel: "Close",
     prospectPhotoRemoveLabel: "Remove Photo",
+    backgroundPhotosLabel: "Background Photos",
     categoryFieldLabel: "Category",
     categoryNew: "New",
     categoryRegular: "Regular",
@@ -3761,13 +3793,6 @@ function genderAvatar(c) {
   if (c.gender === "male") return "👨";
   if (c.gender === "female") return "👩";
   return c.emoji || "👤";
-}
-
-function personAvatarHtml(p) {
-  if (p.photo) {
-    return `<img src="${p.photo}" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
-  }
-  return genderAvatar(p);
 }
 
 function statusLabel(status) {
@@ -3874,8 +3899,9 @@ function applyLanguage() {
   document.getElementById("prospectGenderMaleOpt").textContent = s.genderMale;
   document.getElementById("prospectGenderFemaleOpt").textContent = s.genderFemale;
   document.getElementById("prospectPhotoViewTitle").textContent = s.prospectPhotoViewTitle;
-  document.getElementById("prospectPhotoReplaceLabel").textContent = s.prospectPhotoReplaceLabel;
+  document.getElementById("prospectPhotoCloseLabel").textContent = s.prospectPhotoCloseLabel;
   document.getElementById("prospectPhotoRemoveLabel").textContent = s.prospectPhotoRemoveLabel;
+  document.getElementById("backgroundPhotosLabel").textContent = s.backgroundPhotosLabel;
   document.getElementById("statusOtherMemberOpt").textContent = s.statusOtherMember;
   document.getElementById("followUpsFieldLabel").textContent = s.followUpsFieldLabel;
   document.getElementById("addFollowUpLabel").textContent = s.addFollowUpLabel;
@@ -5016,7 +5042,7 @@ function renderProspects() {
     return `
       <div class="row" onclick="openProspectDetailModal('${p.id}')">
         <div class="row-left">
-          <div class="avatar">${personAvatarHtml(p)}</div>
+          <div class="avatar">${genderAvatar(p)}</div>
           <div class="info">
             <div class="cust-name-row">
               <p class="cust-name">${escapeHtml(p.name)}</p>
@@ -5084,15 +5110,12 @@ const deleteProspectBtn = document.getElementById("deleteProspectBtn");
 
 let pSelectedGender = "";
 let editingProspectId = null;
-let currentProspectPhoto = "";
+let prospectPhotos = [];
+let viewingPhotoIndex = -1;
 
 function updateProspectAvatarPreview() {
   const preview = document.getElementById("prospectAvatarPreview");
   if (!preview) return;
-  if (currentProspectPhoto) {
-    preview.innerHTML = `<img src="${currentProspectPhoto}" alt="" />`;
-    return;
-  }
   if (pSelectedGender === "male") preview.textContent = "👨";
   else if (pSelectedGender === "female") preview.textContent = "👩";
   else preview.textContent = "👤";
@@ -5104,58 +5127,70 @@ function setProspectGender(gender) {
   updateProspectAvatarPreview();
 }
 
-function handleProspectAvatarClick() {
-  if (currentProspectPhoto) {
-    openProspectPhotoView();
-  } else {
-    triggerProspectPhotoUpload();
-  }
+function renderProspectPhotoGallery() {
+  const gallery = document.getElementById("prospectPhotoGallery");
+  if (!gallery) return;
+  const thumbs = prospectPhotos.map((photo, idx) => `
+    <div class="prospect-photo-thumb" onclick="openProspectPhotoView(${idx})">
+      <img src="${photo}" alt="" />
+    </div>
+  `).join("");
+  gallery.innerHTML = thumbs + `
+    <button type="button" class="prospect-photo-add-btn" onclick="triggerProspectPhotoUpload()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+    </button>
+  `;
 }
 
 function triggerProspectPhotoUpload() {
-  document.getElementById("prospectPhotoViewOverlay").classList.remove("open");
   document.getElementById("prospectPhotoInput").click();
 }
 
 document.getElementById("prospectPhotoInput").addEventListener("change", (e) => {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
   const s = t();
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const img = new Image();
-    img.onload = () => {
-      const size = 300;
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      const scale = Math.max(size / img.width, size / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-      if (dataUrl.length > 900000) {
-        alert(s.iconTooLargeError);
-        return;
-      }
-      currentProspectPhoto = dataUrl;
-      updateProspectAvatarPreview();
+  let remaining = files.length;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 900;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        if (dataUrl.length > 1500000) {
+          alert(s.iconTooLargeError);
+        } else {
+          prospectPhotos.push(dataUrl);
+          renderProspectPhotoGallery();
+        }
+        remaining -= 1;
+      };
+      img.src = ev.target.result;
     };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
   e.target.value = "";
 });
 
-function openProspectPhotoView() {
-  if (!currentProspectPhoto) return;
-  document.getElementById("prospectPhotoViewImg").src = currentProspectPhoto;
+function openProspectPhotoView(index) {
+  if (!prospectPhotos[index]) return;
+  viewingPhotoIndex = index;
+  document.getElementById("prospectPhotoViewImg").src = prospectPhotos[index];
   document.getElementById("prospectPhotoViewOverlay").classList.add("open");
   ensureHistoryPushed();
 }
 
 function closeProspectPhotoView() {
+  viewingPhotoIndex = -1;
   document.getElementById("prospectPhotoViewOverlay").classList.remove("open");
   releaseHistoryIfAllClosed();
 }
@@ -5165,8 +5200,9 @@ document.getElementById("prospectPhotoViewOverlay").addEventListener("click", (e
 });
 
 function removeProspectPhoto() {
-  currentProspectPhoto = "";
-  updateProspectAvatarPreview();
+  if (viewingPhotoIndex < 0) return;
+  prospectPhotos.splice(viewingPhotoIndex, 1);
+  renderProspectPhotoGallery();
   closeProspectPhotoView();
 }
 
@@ -5239,7 +5275,8 @@ function resetProspectForm() {
   setRejectionReasonValue("");
   followUpRows = [];
   renderFollowUpRows();
-  currentProspectPhoto = "";
+  prospectPhotos = [];
+  renderProspectPhotoGallery();
   setProspectGender("");
   prospectErrorMsg.style.display = "none";
 }
@@ -5263,7 +5300,7 @@ function openProspectDetailModal(id) {
   const s = t();
   detailProspectId = id;
 
-  document.getElementById("prospectDetailAvatar").innerHTML = personAvatarHtml(p);
+  document.getElementById("prospectDetailAvatar").textContent = genderAvatar(p);
   document.getElementById("prospectDetailName").textContent = p.name;
   const status = p.status || "pending";
   const badge = document.getElementById("prospectDetailStatusBadge");
@@ -5373,7 +5410,8 @@ function openEditProspectModal(id) {
     return { key: followUpKeyCounter, date: f.date || "", note: f.note || "" };
   });
   renderFollowUpRows();
-  currentProspectPhoto = p.photo || "";
+  prospectPhotos = Array.isArray(p.photos) ? p.photos.slice() : [];
+  renderProspectPhotoGallery();
   setProspectGender(p.gender || "");
   prospectModalTitle.textContent = s.modalEditProspectTitle;
   deleteProspectBtn.style.display = "block";
@@ -5420,7 +5458,7 @@ async function saveProspect() {
     .map(r => ({ date: r.date.trim(), note: r.note.trim() }))
     .filter(f => f.date || f.note);
 
-  const payload = { name, gender: pSelectedGender, photo: currentProspectPhoto, background, date, phone, oppDate, notes, status, followUps, rejectionReason };
+  const payload = { name, gender: pSelectedGender, photos: prospectPhotos, background, date, phone, oppDate, notes, status, followUps, rejectionReason };
 
   try {
     let res, saved;
