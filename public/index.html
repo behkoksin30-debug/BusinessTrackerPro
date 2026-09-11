@@ -4976,6 +4976,46 @@ function switchTab(tab) {
     s.addBtnLabel;
 }
 
+// 左右滑动切换 顾客/OPP/跟进对象/ABO/生日 分页(跟标签栏顺序一致)
+const TAB_SWIPE_ORDER = ["customers", "prospects", "abos", "partners", "birthdays"];
+(function setupTabSwipe() {
+  const page2 = document.getElementById("page2View");
+  if (!page2) return;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let swipeTracking = false;
+
+  page2.addEventListener("touchstart", (e) => {
+    if (document.querySelector(".modal-overlay.open")) { swipeTracking = false; return; }
+    if (e.touches.length !== 1) { swipeTracking = false; return; }
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    swipeTracking = true;
+  }, { passive: true });
+
+  page2.addEventListener("touchend", (e) => {
+    if (!swipeTracking) return;
+    swipeTracking = false;
+    if (document.querySelector(".modal-overlay.open")) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    // 只有明显是水平滑动(距离够、比垂直方向明显)才触发切换分页,避免跟上下滚动冲突
+    if (absDx < 60 || absDx < absDy * 1.5) return;
+    const currentIndex = TAB_SWIPE_ORDER.indexOf(currentTab);
+    if (currentIndex === -1) return;
+    if (dx < 0) {
+      const nextIndex = Math.min(currentIndex + 1, TAB_SWIPE_ORDER.length - 1);
+      if (nextIndex !== currentIndex) switchTab(TAB_SWIPE_ORDER[nextIndex]);
+    } else {
+      const prevIndex = Math.max(currentIndex - 1, 0);
+      if (prevIndex !== currentIndex) switchTab(TAB_SWIPE_ORDER[prevIndex]);
+    }
+  }, { passive: true });
+})();
+
 document.getElementById("openAddBtn").addEventListener("click", () => {
   if (blockIfViewingDownline()) return;
   if (currentTab === "prospects") {
