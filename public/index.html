@@ -7600,6 +7600,8 @@ async function loadDashboard() {
 // 这里转成新的 posterImage / posterVideo 各自独立栏位,资料不会遗失
 function migrateLegacyPosterFieldIfNeeded() {
   if (!dashboardData.poster) return;
+  if (viewingAsUser) return; // 正在唯读查看下线资料时,绝对不能在这里触发保存——
+                              // 保存一定是存回「自己」的账号,如果这时候存,会把下线的资料写进自己账号里
   if (dashboardData.posterType === "video") {
     if (!dashboardData.posterVideo) dashboardData.posterVideo = dashboardData.poster;
   } else {
