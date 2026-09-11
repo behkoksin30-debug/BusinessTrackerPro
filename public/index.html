@@ -3755,7 +3755,36 @@ try {
 } catch (e) {}
 
 function savePrefs() {
+  // 本地先存一份,确保下次开启网页时能立刻显示(不用等网络请求)
   localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  // 同时推送到服务器,让其他设备登入同一个账号也能看到一样的设定
+  fetch("/api/prefs", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prefs),
+  }).catch(() => {
+    // 网络失败时不影响本地使用,静默失败即可
+  });
+}
+
+async function loadPrefsFromServer() {
+  try {
+    const res = await fetch("/api/prefs");
+    const serverPrefs = await res.json();
+    if (!serverPrefs || Object.keys(serverPrefs).length === 0) return;
+    prefs = { ...prefs, ...serverPrefs };
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    applyPrefs();
+    if (typeof render === "function") render();
+    if (typeof renderProspects === "function") renderProspects();
+    if (typeof renderBirthdays === "function") renderBirthdays();
+    if (typeof renderAbos === "function") renderAbos();
+    if (typeof renderPartners === "function") renderPartners();
+    if (typeof renderQuickStats === "function") renderQuickStats();
+    if (typeof renderBusinessSourceCard === "function") renderBusinessSourceCard();
+  } catch (e) {
+    // 拿不到服务器资料就继续用本地版本,不影响使用
+  }
 }
 
 function applyPrefs() {
@@ -8018,6 +8047,7 @@ function initAppAfterLogin() {
   applyPrefs();
   loadDownlines();
   reloadAllData();
+  loadPrefsFromServer();
 }
 
 checkAuthStatus();
