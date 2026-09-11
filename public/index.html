@@ -1794,6 +1794,21 @@
     white-space: pre-wrap;
   }
 
+  .tab-page-slide-in-left {
+    animation: tabSlideInLeft 0.26s ease-out;
+  }
+  .tab-page-slide-in-right {
+    animation: tabSlideInRight 0.26s ease-out;
+  }
+  @keyframes tabSlideInLeft {
+    from { transform: translateX(28px); opacity: 0.4; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes tabSlideInRight {
+    from { transform: translateX(-28px); opacity: 0.4; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
   @media (max-width: 480px) {
     .two-col { grid-template-columns: 1fr; }
   }
@@ -4971,6 +4986,7 @@ function backToHome() {
 }
 
 function switchTab(tab) {
+  const previousTab = currentTab;
   currentTab = tab;
   const s = t();
   document.getElementById("tabCustomersBtn").classList.toggle("active", tab === "customers");
@@ -4983,6 +4999,26 @@ function switchTab(tab) {
   document.getElementById("birthdaysView").style.display = tab === "birthdays" ? "block" : "none";
   document.getElementById("abosView").style.display = tab === "abos" ? "block" : "none";
   document.getElementById("partnersView").style.display = tab === "partners" ? "block" : "none";
+
+  // 像手机分页那样,依切换方向套用滑入动画(不是直接闪现切换)
+  if (previousTab !== tab) {
+    const order = ["customers", "prospects", "abos", "partners", "birthdays"];
+    const fromIndex = order.indexOf(previousTab);
+    const toIndex = order.indexOf(tab);
+    const activeView = document.getElementById(tab + "View");
+    if (activeView && fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      const animClass = toIndex > fromIndex ? "tab-page-slide-in-left" : "tab-page-slide-in-right";
+      activeView.classList.remove("tab-page-slide-in-left", "tab-page-slide-in-right");
+      // 强制 reflow,确保同一个 class 连续套用时动画会重新播放
+      void activeView.offsetWidth;
+      activeView.classList.add(animClass);
+      activeView.addEventListener("animationend", function handler() {
+        activeView.classList.remove(animClass);
+        activeView.removeEventListener("animationend", handler);
+      });
+    }
+  }
+
   document.getElementById("addBtnLabel").textContent =
     tab === "prospects" ? s.addProspectBtnLabel :
     tab === "birthdays" ? s.addBirthdayBtnLabel :
