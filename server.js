@@ -392,6 +392,7 @@ function readProspects(username) {
       id: p.id,
       name: p.name || "",
       gender: sanitizeGender(p.gender),
+      photos: sanitizeProspectPhotos(p.photos),
       background: p.background || "",
       date: toMonthDay(p.date),
       phone: p.phone || "",
