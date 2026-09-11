@@ -574,12 +574,19 @@ function prospectValidationError(body) {
   return null;
 }
 
+function sanitizeProspectPhotos(photos) {
+  if (!Array.isArray(photos)) return [];
+  return photos
+    .filter((p) => typeof p === "string" && p.trim())
+    .slice(0, 20);
+}
+
 function buildProspectFields(body) {
-  const { name, gender, photo, background, date, phone, oppDate, notes, status, followUps, rejectionReason } = body;
+  const { name, gender, photos, background, date, phone, oppDate, notes, status, followUps, rejectionReason } = body;
   return {
     name: name.trim(),
     gender: sanitizeGender(gender),
-    photo: (photo || "").toString(),
+    photos: sanitizeProspectPhotos(photos),
     background: (background || "").toString().trim(),
     date: toMonthDay(date),
     phone: (phone || "").toString().trim(),
