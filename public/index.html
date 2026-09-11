@@ -2387,6 +2387,11 @@
         <p class="detail-notes-box" id="prospectDetailBackgroundBox"></p>
       </div>
 
+      <div id="prospectDetailPhotosWrap" style="display:none;">
+        <p class="detail-section-title" id="prospectDetailPhotosTitle">背景照片</p>
+        <div class="prospect-photo-gallery" id="prospectDetailPhotoGallery"></div>
+      </div>
+
       <p class="detail-section-title" id="prospectDetailFollowUpsTitle">跟进记录</p>
       <div id="prospectDetailFollowUpsList"></div>
 
@@ -2806,7 +2811,7 @@
       <img id="prospectPhotoViewImg" src="" alt="" class="prospect-photo-view-img" />
       <div class="modal-actions">
         <button type="button" onclick="closeProspectPhotoView()"><span id="prospectPhotoCloseLabel">关闭</span></button>
-        <button class="primary-btn" type="button" onclick="removeProspectPhoto()"><span id="prospectPhotoRemoveLabel">删除照片</span></button>
+        <button class="primary-btn" type="button" id="prospectPhotoRemoveActionBtn" onclick="removeProspectPhoto()"><span id="prospectPhotoRemoveLabel">删除照片</span></button>
       </div>
     </div>
   </div>
@@ -3902,6 +3907,7 @@ function applyLanguage() {
   document.getElementById("prospectPhotoCloseLabel").textContent = s.prospectPhotoCloseLabel;
   document.getElementById("prospectPhotoRemoveLabel").textContent = s.prospectPhotoRemoveLabel;
   document.getElementById("backgroundPhotosLabel").textContent = s.backgroundPhotosLabel;
+  document.getElementById("prospectDetailPhotosTitle").textContent = s.backgroundPhotosLabel;
   document.getElementById("statusOtherMemberOpt").textContent = s.statusOtherMember;
   document.getElementById("followUpsFieldLabel").textContent = s.followUpsFieldLabel;
   document.getElementById("addFollowUpLabel").textContent = s.addFollowUpLabel;
@@ -5185,6 +5191,15 @@ function openProspectPhotoView(index) {
   if (!prospectPhotos[index]) return;
   viewingPhotoIndex = index;
   document.getElementById("prospectPhotoViewImg").src = prospectPhotos[index];
+  document.getElementById("prospectPhotoRemoveActionBtn").style.display = "block";
+  document.getElementById("prospectPhotoViewOverlay").classList.add("open");
+  ensureHistoryPushed();
+}
+
+function openReadOnlyPhotoView(photoSrc) {
+  viewingPhotoIndex = -1;
+  document.getElementById("prospectPhotoViewImg").src = photoSrc;
+  document.getElementById("prospectPhotoRemoveActionBtn").style.display = "none";
   document.getElementById("prospectPhotoViewOverlay").classList.add("open");
   ensureHistoryPushed();
 }
@@ -5344,6 +5359,19 @@ function openProspectDetailModal(id) {
     document.getElementById("prospectDetailBackgroundBox").textContent = p.background;
   } else {
     bgWrap.style.display = "none";
+  }
+
+  const photosWrap = document.getElementById("prospectDetailPhotosWrap");
+  const photos = Array.isArray(p.photos) ? p.photos : [];
+  if (photos.length > 0) {
+    photosWrap.style.display = "block";
+    document.getElementById("prospectDetailPhotoGallery").innerHTML = photos.map(photo => `
+      <div class="prospect-photo-thumb" onclick="openReadOnlyPhotoView('${photo.replace(/'/g, "\\'")}')">
+        <img src="${photo}" alt="" />
+      </div>
+    `).join("");
+  } else {
+    photosWrap.style.display = "none";
   }
 
   const notesWrap = document.getElementById("prospectDetailNotesWrap");
