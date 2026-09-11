@@ -4854,12 +4854,17 @@ function editCustomerGoal(which) {
   render();
 }
 
+let customersLoadToken = 0;
 async function loadCustomers() {
+  const myToken = ++customersLoadToken;
   try {
     const res = await fetch(API);
-    customers = await res.json();
+    const data = await res.json();
+    if (myToken !== customersLoadToken) return; // 已经有更新的请求,这次的回应过期了,不採用
+    customers = data;
     render();
   } catch (e) {
+    if (myToken !== customersLoadToken) return;
     contentEl.innerHTML = `<div class="empty-state">${t().loadFailed}</div>`;
   }
 }
@@ -5158,12 +5163,17 @@ let prospects = [];
 const prospectsContentEl = document.getElementById("prospectsContent");
 const prospectsFooterEl = document.getElementById("prospectsFooterCount");
 
+let prospectsLoadToken = 0;
 async function loadProspects() {
+  const myToken = ++prospectsLoadToken;
   try {
     const res = await fetch(PROSPECTS_API);
-    prospects = await res.json();
+    const data = await res.json();
+    if (myToken !== prospectsLoadToken) return;
+    prospects = data;
     renderProspects();
   } catch (e) {
+    if (myToken !== prospectsLoadToken) return;
     if (prospectsContentEl) prospectsContentEl.innerHTML = `<div class="empty-state">${t().loadFailed}</div>`;
   }
 }
@@ -5754,12 +5764,17 @@ let birthdays = [];
 const birthdaysContentEl = document.getElementById("birthdaysContent");
 const birthdaysFooterEl = document.getElementById("birthdaysFooterCount");
 
+let birthdaysLoadToken = 0;
 async function loadBirthdays() {
+  const myToken = ++birthdaysLoadToken;
   try {
     const res = await fetch(BIRTHDAYS_API);
-    birthdays = await res.json();
+    const data = await res.json();
+    if (myToken !== birthdaysLoadToken) return;
+    birthdays = data;
     renderBirthdays();
   } catch (e) {
+    if (myToken !== birthdaysLoadToken) return;
     if (birthdaysContentEl) birthdaysContentEl.innerHTML = `<div class="empty-state">${t().loadFailed}</div>`;
   }
 }
@@ -6112,12 +6127,17 @@ function aboProgressCount(a) {
   return { done, total: ABO_CHECKLIST_FIELDS.length };
 }
 
+let abosLoadToken = 0;
 async function loadAbos() {
+  const myToken = ++abosLoadToken;
   try {
     const res = await fetch(ABOS_API);
-    abos = await res.json();
+    const data = await res.json();
+    if (myToken !== abosLoadToken) return;
+    abos = data;
     renderAbos();
   } catch (e) {
+    if (myToken !== abosLoadToken) return;
     if (abosContentEl) abosContentEl.innerHTML = `<div class="empty-state">${t().loadFailed}</div>`;
   }
 }
@@ -6533,12 +6553,17 @@ function partnerTypeLabel(type) {
   return s.partnerTypeNewStart;
 }
 
+let partnersLoadToken = 0;
 async function loadPartners() {
+  const myToken = ++partnersLoadToken;
   try {
     const res = await fetch(PARTNERS_API);
-    partners = await res.json();
+    const data = await res.json();
+    if (myToken !== partnersLoadToken) return;
+    partners = data;
     renderPartners();
   } catch (e) {
+    if (myToken !== partnersLoadToken) return;
     if (partnersContentEl) partnersContentEl.innerHTML = `<div class="empty-state">${t().loadFailed}</div>`;
   }
 }
@@ -7554,14 +7579,19 @@ whatsappBtn.addEventListener("click", () => {
    ============================================================ */
 let dashboardData = { posterImage: "", posterImageX: 0.5, posterImageY: 0.5, posterImageScale: 1, posterVideo: "", tagline: "", announcement: "", appTitle: "", appSubtitle: "", customIcon: "" };
 
+let dashboardLoadToken = 0;
 async function loadDashboard() {
+  const myToken = ++dashboardLoadToken;
   try {
     const res = await fetch("/api/dashboard");
-    dashboardData = await res.json();
+    const data = await res.json();
+    if (myToken !== dashboardLoadToken) return; // 已经有更新的请求,这次的回应过期了,不採用
+    dashboardData = data;
     migrateLegacyPosterFieldIfNeeded();
     migrateLegacyBrandingIfNeeded();
     renderDashboard();
   } catch (e) {
+    if (myToken !== dashboardLoadToken) return;
     renderDashboard();
   }
 }
