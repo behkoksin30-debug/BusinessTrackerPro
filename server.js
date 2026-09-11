@@ -707,17 +707,26 @@ function readDashboard(username) {
     return {
       poster: parsed.poster || "",
       posterType: parsed.posterType === "video" ? "video" : "image",
-      tagline: parsed.tagline || "",
-      announcement: parsed.announcement || "",
       posterX: clampNumber(parsed.posterX, 0, 1, 0.5),
       posterY: clampNumber(parsed.posterY, 0, 1, 0.5),
       posterScale: clampNumber(parsed.posterScale, 1, 3, 1),
+      posterImage: (parsed.posterImage || "").toString(),
+      posterImageX: clampNumber(parsed.posterImageX, 0, 1, 0.5),
+      posterImageY: clampNumber(parsed.posterImageY, 0, 1, 0.5),
+      posterImageScale: clampNumber(parsed.posterImageScale, 1, 3, 1),
+      posterVideo: (parsed.posterVideo || "").toString(),
+      tagline: parsed.tagline || "",
+      announcement: parsed.announcement || "",
       appTitle: (parsed.appTitle || "").toString(),
       appSubtitle: (parsed.appSubtitle || "").toString(),
       customIcon: (parsed.customIcon || "").toString(),
     };
   } catch (e) {
-    return { poster: "", posterType: "image", tagline: "", announcement: "", posterX: 0.5, posterY: 0.5, posterScale: 1, appTitle: "", appSubtitle: "", customIcon: "" };
+    return {
+      poster: "", posterType: "image", posterX: 0.5, posterY: 0.5, posterScale: 1,
+      posterImage: "", posterImageX: 0.5, posterImageY: 0.5, posterImageScale: 1,
+      posterVideo: "", tagline: "", announcement: "", appTitle: "", appSubtitle: "", customIcon: "",
+    };
   }
 }
 
@@ -726,11 +735,16 @@ function writeDashboard(username, data) {
   const safe = {
     poster: (data.poster || "").toString(),
     posterType: data.posterType === "video" ? "video" : "image",
-    tagline: (data.tagline || "").toString().trim(),
-    announcement: (data.announcement || "").toString().trim(),
     posterX: clampNumber(data.posterX, 0, 1, 0.5),
     posterY: clampNumber(data.posterY, 0, 1, 0.5),
     posterScale: clampNumber(data.posterScale, 1, 3, 1),
+    posterImage: (data.posterImage || "").toString(),
+    posterImageX: clampNumber(data.posterImageX, 0, 1, 0.5),
+    posterImageY: clampNumber(data.posterImageY, 0, 1, 0.5),
+    posterImageScale: clampNumber(data.posterImageScale, 1, 3, 1),
+    posterVideo: (data.posterVideo || "").toString(),
+    tagline: (data.tagline || "").toString().trim(),
+    announcement: (data.announcement || "").toString().trim(),
     appTitle: (data.appTitle || "").toString().trim().slice(0, 60),
     appSubtitle: (data.appSubtitle || "").toString().trim().slice(0, 120),
     customIcon: (data.customIcon || "").toString(),
