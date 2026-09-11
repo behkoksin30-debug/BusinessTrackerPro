@@ -575,10 +575,11 @@ function prospectValidationError(body) {
 }
 
 function buildProspectFields(body) {
-  const { name, gender, background, date, phone, oppDate, notes, status, followUps, rejectionReason } = body;
+  const { name, gender, photo, background, date, phone, oppDate, notes, status, followUps, rejectionReason } = body;
   return {
     name: name.trim(),
     gender: sanitizeGender(gender),
+    photo: (photo || "").toString(),
     background: (background || "").toString().trim(),
     date: toMonthDay(date),
     phone: (phone || "").toString().trim(),
