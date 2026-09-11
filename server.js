@@ -445,6 +445,7 @@ function readPartners(username) {
     return parsed.map((p) => ({
       id: p.id,
       name: p.name || "",
+      gender: sanitizeGender(p.gender),
       phone: p.phone || "",
       ada: p.ada || "",
       date: toMonthDay(p.date),
@@ -472,9 +473,10 @@ function partnerValidationError(body) {
 }
 
 function buildPartnerFields(body) {
-  const { name, phone, ada, date, pin, partnerType, notes } = body;
+  const { name, gender, phone, ada, date, pin, partnerType, notes } = body;
   return {
     name: name.trim(),
+    gender: sanitizeGender(gender),
     phone: (phone || "").toString().trim(),
     ada: (ada || "").toString().trim(),
     date: toMonthDay(date),
